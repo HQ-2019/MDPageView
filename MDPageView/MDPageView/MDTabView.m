@@ -32,6 +32,7 @@
         UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:frame collectionViewLayout:flowLayout];
         collectionView.delegate = self;
         collectionView.dataSource = self;
+        collectionView.showsHorizontalScrollIndicator = NO;
         [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:@"cell"];
         [self addSubview:collectionView];
         self.collectionView = collectionView;
@@ -39,8 +40,8 @@
         self.collectionView.backgroundColor = UIColor.grayColor;
         
         self.sliderView = [UIView new];
-        self.sliderView.backgroundColor = UIColor.redColor;
-        self.sliderView.frame = CGRectMake(0, frame.size.height - 4, frame.size.height, 4);
+        self.sliderView.backgroundColor = [UIColor.redColor colorWithAlphaComponent:0.5];
+        self.sliderView.frame = CGRectMake(0, 0, frame.size.height, frame.size.height);
         [self addSubview:self.sliderView];
         
     }
@@ -58,13 +59,8 @@
     [self.collectionView layoutSubviews];
     
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-    [self.collectionView selectItemAtIndexPath:indexPath animated:YES scrollPosition:UICollectionViewScrollPositionNone];
-    
-    UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
-    [self.sliderView.layer removeAllAnimations];
-    [UIView animateWithDuration:0.3 animations:^{
-        self.sliderView.frame = CGRectMake(cell.frame.origin.x, cell.frame.size.height - 4, cell.frame.size.height, 4);
-    }];
+    //[self.collectionView selectItemAtIndexPath:indexPath animated:YES scrollPosition:UICollectionViewScrollPositionNone];
+    [self moveSliderViewAtIndexe:indexPath];
 }
 
 
@@ -86,9 +82,9 @@
     label.frame = cell.bounds;
     [cell.contentView addSubview:label];
     
-    UIView *v = [[UIView alloc] initWithFrame:cell.bounds];
-    v.backgroundColor = UIColor.orangeColor;
-    cell.selectedBackgroundView = v;
+//    UIView *v = [[UIView alloc] initWithFrame:cell.bounds];
+//    v.backgroundColor = UIColor.orangeColor;
+//    cell.selectedBackgroundView = v;
     
     return cell;
 }
@@ -97,11 +93,15 @@
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
     !self.clickIndexBlock ?: self.clickIndexBlock(indexPath.row);
     
+    [self moveSliderViewAtIndexe:indexPath];
+}
+
+- (void)moveSliderViewAtIndexe:(NSIndexPath *)indexPath {
     UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
     
     [self.sliderView.layer removeAllAnimations];
     [UIView animateWithDuration:0.3 animations:^{
-        self.sliderView.frame = CGRectMake(cell.frame.origin.x, cell.frame.size.height - 4, cell.frame.size.height, 4);
+        self.sliderView.frame = cell.frame;
     }];
 }
 

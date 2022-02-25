@@ -27,8 +27,6 @@
     __weak typeof(self) weakSelf = self;
     NSInteger showIndex = 1;
     
-    MDTabView *tabView = [[MDTabView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
-    
     MDPageViewController *controller = [MDPageViewController new];
     [self addChildViewController:controller];
     [self.view addSubview:controller.view];

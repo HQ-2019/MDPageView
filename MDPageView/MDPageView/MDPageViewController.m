@@ -75,11 +75,6 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
 }
 
-- (void)viewDidLayoutSubviews {
-    [super viewDidLayoutSubviews];
-    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self);
-}
-
 /// （关键）不自动调用子控制器的生命周期方法
 - (BOOL)shouldAutomaticallyForwardAppearanceMethods {
     return NO;
@@ -163,8 +158,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     // 滚动准备开始
     void (^scrollBeginAnimation)(void) = ^(void) {
-        [[self viewControllerAtIndex:self.lastPageIndex] beginAppearanceTransition:YES animated:NO];
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:NO];
+        [[self viewControllerAtIndex:self.lastPageIndex] beginAppearanceTransition:YES animated:NO];
     };
     
     // 滚动结束
@@ -184,89 +179,101 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex, self.lastPageIndex);
     };
     
+    // ********************** 未启用动画切换
+    if (!animated) {
+        // 执行准备滚动
+        scrollBeginAnimation();
+        // 直接切换，不执行动画
+        scrollEndAnimation();
+        
+        return;
+    }
+    
+    // ********************** 启用动画切换
+    
+    // 页面视图的size
+    CGSize pageSize = self.baseScrollView.frame.size;
+    
+    // 动画页面
+    UIView *oldView = [self viewControllerAtIndex:oldPageIndex].view;
+    UIView *lastView = [self viewControllerAtIndex:self.lastPageIndex].view;
+    UIView *currentView = [self viewControllerAtIndex:self.currentPageIndex].view;
+    
+    UIView *backgroundView = nil;
+    // 用户快速点击切换页面，即前一次切换动画未结束时，又发起了新的页面切换
+    // 触发他们完成页面生命周期调用，将要消失的视图要及时切换
+    if (oldView.layer.animationKeys.count > 0 && lastView.layer.animationKeys.count > 0) {
+        
+        [[self viewControllerAtIndex:self.lastPageIndex] endAppearanceTransition];
+        [[self viewControllerAtIndex:oldPageIndex] endAppearanceTransition];
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.lastPageIndex, oldPageIndex);
+        
+        UIView *tmepView = [self viewControllerAtIndex:self.baseScrollView.contentOffset.x / pageSize.width].view;
+        if (tmepView != currentView && tmepView != lastView) {
+            backgroundView = tmepView;
+            [UIView animateWithDuration:2 animations:^{
+                backgroundView.hidden = YES;
+            }];
+        }
+    }
+    
     // 执行准备滚动
     scrollBeginAnimation();
     
-    if (!animated) {
-        // 直接切换，不执行动画
-        scrollEndAnimation();
+    // 移除当前在执行的动画（用户可能在快速点击切换）
+    [self.baseScrollView.layer removeAllAnimations];
+    [oldView.layer removeAllAnimations];
+    [lastView.layer removeAllAnimations];
+    [currentView.layer removeAllAnimations];
+    
+    // 恢复oldView的坐标
+    [self moveBackToOriginPositionIfNeeded:oldView index:oldPageIndex];
+    
+    // 将执行动画的视图层级提到前面，避免遮挡
+    [self.baseScrollView bringSubviewToFront:lastView];
+    [self.baseScrollView bringSubviewToFront:currentView];
+    
+    // 计算执行动画的视图的开始,移动目标和结束时的位置
+    CGPoint lastView_StartOrigin = lastView.frame.origin;
+    CGPoint lastView_MoveToOrigin = lastView.frame.origin;
+    CGPoint lastView_EndOrigin = lastView.frame.origin;
+    
+    CGPoint currtentView_StartOrigin = lastView.frame.origin;
+    CGPoint currtentView_MoveToOrigin = lastView.frame.origin;
+    CGPoint currtentView_EndOrigin = currentView.frame.origin;
+    
+    // 根据滚动方向调整视图的x坐标
+    if (self.lastPageIndex < self.currentPageIndex) {
+        currtentView_StartOrigin.x += pageSize.width;
+        lastView_MoveToOrigin.x -= pageSize.width;
     } else {
-        // 页面视图的size
-        CGSize pageSize = self.baseScrollView.frame.size;
-        // 滚动方向
-        MDPageScrollDirection direction = (self.lastPageIndex < self.currentPageIndex) ? MDPageScrollDirection_Right : MDPageScrollDirection_Left;
-        // 动画时间
-        CGFloat duration = 0.3;
-        UIView *oldView = [self viewControllerAtIndex:oldPageIndex].view;
-        UIView *lastView = [self viewControllerAtIndex:self.lastPageIndex].view;
-        UIView *currentView = [self viewControllerAtIndex:self.currentPageIndex].view;
-        
-        // 如果是快速点击切换时，将要消失的视图要及时切换
-        UIView *backgroundView = nil;
-        if (oldView.layer.animationKeys.count > 0 && lastView.layer.animationKeys.count > 0) {
-            UIView *tmepView = [self viewControllerAtIndex:self.baseScrollView.contentOffset.x / pageSize.width].view;
-            if (tmepView != currentView && tmepView != lastView) {
-                backgroundView = tmepView;
-                [UIView animateWithDuration:2 animations:^{
-                    backgroundView.hidden = YES;
-                }];
-            }
-        }
-        
-        // 移除当前在执行的动画（用户可能在快速点击切换）
-        [self.baseScrollView.layer removeAllAnimations];
-        [oldView.layer removeAllAnimations];
-        [lastView.layer removeAllAnimations];
-        [currentView.layer removeAllAnimations];
-        
-        // 恢复oldView的坐标
-        [self moveBackToOriginPositionIfNeeded:oldView index:oldPageIndex];
-        
-        // 将执行动画的视图层级提到前面，避免遮挡
-        [self.baseScrollView bringSubviewToFront:lastView];
-        [self.baseScrollView bringSubviewToFront:currentView];
-        
-        // 计算执行动画的视图的开始,移动目标和结束时的位置
-        CGPoint lastView_StartOrigin = lastView.frame.origin;
-        CGPoint lastView_MoveToOrigin = lastView.frame.origin;
-        CGPoint lastView_EndOrigin = lastView.frame.origin;
-        
-        CGPoint currtentView_StartOrigin = lastView.frame.origin;
-        CGPoint currtentView_MoveToOrigin = lastView.frame.origin;
-        CGPoint currtentView_EndOrigin = currentView.frame.origin;
-        
-        if (direction == MDPageScrollDirection_Right) {
-            currtentView_StartOrigin.x += pageSize.width;
-            lastView_MoveToOrigin.x -= pageSize.width;
-        } else {
-            currtentView_StartOrigin.x -= pageSize.width;
-            lastView_MoveToOrigin.x += pageSize.width;
-        }
-
-        // 调整动画的两个视图frame到相邻位置
-        lastView.frame = CGRectMake(lastView_StartOrigin.x, lastView_StartOrigin.y, pageSize.width, pageSize.height);
-        currentView.frame = CGRectMake(currtentView_StartOrigin.x, currtentView_StartOrigin.y, pageSize.width, pageSize.height);
-        
-        // 执行页面切换动画
-        [UIView animateWithDuration:duration animations:^{
-            lastView.frame = CGRectMake(lastView_MoveToOrigin.x, lastView_MoveToOrigin.y, pageSize.width, pageSize.height);
-            currentView.frame = CGRectMake(currtentView_MoveToOrigin.x, currtentView_MoveToOrigin.y, pageSize.width, pageSize.height);
-        } completion:^(BOOL finished) {
-            if (finished) {
-                lastView.frame = CGRectMake(lastView_EndOrigin.x, lastView_EndOrigin.y, pageSize.width, pageSize.height);
-                currentView.frame = CGRectMake(currtentView_EndOrigin.x, currtentView_EndOrigin.y, pageSize.width, pageSize.height);
-                
-                backgroundView.hidden = NO;
-                
-                // 恢复视图坐标
-                [self moveBackToOriginPositionIfNeeded:currentView index:self.currentPageIndex];
-                [self moveBackToOriginPositionIfNeeded:lastView index:self.lastPageIndex];
-                
-                // 动画结束
-                scrollEndAnimation();
-            }
-        }];
+        currtentView_StartOrigin.x -= pageSize.width;
+        lastView_MoveToOrigin.x += pageSize.width;
     }
+    
+    // 调整动画的两个视图frame到相邻位置
+    lastView.frame = CGRectMake(lastView_StartOrigin.x, lastView_StartOrigin.y, pageSize.width, pageSize.height);
+    currentView.frame = CGRectMake(currtentView_StartOrigin.x, currtentView_StartOrigin.y, pageSize.width, pageSize.height);
+    
+    // 执行页面切换动画
+    [UIView animateWithDuration:0.3 animations:^{
+        lastView.frame = CGRectMake(lastView_MoveToOrigin.x, lastView_MoveToOrigin.y, pageSize.width, pageSize.height);
+        currentView.frame = CGRectMake(currtentView_MoveToOrigin.x, currtentView_MoveToOrigin.y, pageSize.width, pageSize.height);
+    } completion:^(BOOL finished) {
+        if (finished) {
+            lastView.frame = CGRectMake(lastView_EndOrigin.x, lastView_EndOrigin.y, pageSize.width, pageSize.height);
+            currentView.frame = CGRectMake(currtentView_EndOrigin.x, currtentView_EndOrigin.y, pageSize.width, pageSize.height);
+            
+            backgroundView.hidden = NO;
+            
+            // 恢复视图坐标
+            [self moveBackToOriginPositionIfNeeded:currentView index:self.currentPageIndex];
+            [self moveBackToOriginPositionIfNeeded:lastView index:self.lastPageIndex];
+            
+            // 动画结束
+            scrollEndAnimation();
+        }
+    }];
 }
 
 /// 计算索引对应视图的frame
@@ -459,7 +466,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 
 /// 手指拖动 即将结束
 - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
-//    NSLog(@"手指拖动 即将结束");
+    NSLog(@"手指拖动 即将结束");
     
     CGFloat offsetX = (CGFloat)scrollView.contentOffset.x;
     CGFloat pageWidth = (CGFloat)scrollView.frame.size.width;

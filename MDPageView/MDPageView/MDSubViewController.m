@@ -17,25 +17,11 @@
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
 }
 
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-//        [self initSubView];
-    }
-    return self;
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = self.color;
     [self initSubView];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
-}
-
-- (void)viewDidLayoutSubviews {
-    [super viewDidLayoutSubviews];
-    
-//    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
 }
 
 - (void)initSubView {

@@ -36,10 +36,11 @@
 //        NSLog(@"Offset: %@    isDragging: %@", @(contentOffset.x), @(isDragging));
     };
     controller.viewWillChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
+        NSLog(@"----------------------------------   页面将要切换  %@ -> %@", @(fromIndex), @(toIndex));
         [weakSelf.tabView showAtIndex:toIndex];
     };
     controller.viewDidChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
-        NSLog(@"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx   页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
+        NSLog(@"==================================   页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
         [weakSelf.tabView showAtIndex:toIndex];
     };
     

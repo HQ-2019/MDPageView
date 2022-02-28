@@ -48,6 +48,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     [super viewDidLoad];
     
     self.toPageIndex = -1;
+    self.lastPageIndex = -1;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -55,24 +56,28 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     // 首次不调用
     [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
+    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.lastPageIndex);
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
     [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.lastPageIndex);
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
     [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
+    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.lastPageIndex);
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     
     [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.lastPageIndex);
 }
 
 /// （关键）不自动调用子控制器的生命周期方法
@@ -158,8 +163,9 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     // 滚动准备开始
     void (^scrollBeginAnimation)(void) = ^(void) {
-        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:NO];
-        [[self viewControllerAtIndex:self.lastPageIndex] beginAppearanceTransition:YES animated:NO];
+        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:NO];
+        [[self viewControllerAtIndex:self.lastPageIndex] beginAppearanceTransition:NO animated:NO];
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.lastPageIndex , self.currentPageIndex);
     };
     
     // 滚动结束
@@ -446,10 +452,12 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         
         // 新页面将要滑出
         [self addChildViewControllerWithIndex:self.toPageIndex];
-        [self addNeighbourViewControllerWithIndex:self.toPageIndex];
+        
         [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:YES animated:YES];
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
         !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.toPageIndex , self.currentPageIndex);
+        
+        [self addNeighbourViewControllerWithIndex:self.toPageIndex];
         
         return;
     }
@@ -477,11 +485,12 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         }
         
         [self addChildViewControllerWithIndex:newToPage];
-        [self addNeighbourViewControllerWithIndex:newToPage];
         
         [[self viewControllerAtIndex:newToPage] beginAppearanceTransition:YES animated:YES];
         [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
         !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(newToPage , self.toPageIndex);
+        
+        [self addNeighbourViewControllerWithIndex:newToPage];
         
         self.toPageIndex = newToPage;
     }
@@ -525,7 +534,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 
 /// 列表最终滚动结束时
 - (void)scrollViewDidEnd:(UIScrollView *)scrollView {
-    NSLog(@"scroll end =================================");
+    NSLog(@"scroll end ====================");
     
     if (self.currentPageIndex != self.toPageIndex && self.toPageIndex >= 0) {
         [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];

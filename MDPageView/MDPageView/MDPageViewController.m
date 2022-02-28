@@ -160,9 +160,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     // 滚动准备开始
     void (^scrollBeginAnimation)(void) = ^(void) {
-        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:NO];
-        [[self viewControllerAtIndex:self.lastPageIndex] beginAppearanceTransition:NO animated:NO];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.lastPageIndex , self.currentPageIndex);
+        // 视图将要切换
+        [self viewWillChange:self.currentPageIndex fromeIndex:self.lastPageIndex];
     };
     
     // 滚动结束
@@ -170,8 +169,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         // 更新视图内容位置
         [self updateScrollViewContentOffset:NO];
         
-        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        [[self viewControllerAtIndex:self.lastPageIndex] endAppearanceTransition];
+        // 视图完成切换
+        [self viewDidChange:self.currentPageIndex fromeIndex:self.lastPageIndex];
         
         // 将多余视图移除
         [self removeNotNeighbourViewController];
@@ -179,7 +178,6 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         // 将当前视图的前后视图添加预加载
         [self addNeighbourViewControllerWithIndex:self.currentPageIndex];
         
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex, self.lastPageIndex);
     };
     
     // ********************** 未启用动画切换
@@ -207,9 +205,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     // 触发他们完成页面生命周期调用，将要消失的视图要及时切换
     if (oldView.layer.animationKeys.count > 0 && lastView.layer.animationKeys.count > 0) {
         
-        [[self viewControllerAtIndex:self.lastPageIndex] endAppearanceTransition];
-        [[self viewControllerAtIndex:oldPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.lastPageIndex, oldPageIndex);
+        // 视图完成切换
+        [self viewDidChange:self.lastPageIndex fromeIndex:oldPageIndex];
         
         UIView *tmepView = [self viewControllerAtIndex:self.baseScrollView.contentOffset.x / pageSize.width].view;
         if (tmepView != currentView && tmepView != lastView) {
@@ -402,6 +399,25 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     }
 }
 
+/// 页面将要切换
+/// @param toIndex 将要出现的页面
+/// @param fromeIndex 将要消失的页面
+- (void)viewWillChange:(NSInteger)toIndex fromeIndex:(NSInteger)fromeIndex {
+    [[self viewControllerAtIndex:toIndex] beginAppearanceTransition:YES animated:YES];
+    [[self viewControllerAtIndex:fromeIndex] beginAppearanceTransition:NO animated:YES];
+    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(toIndex , fromeIndex);
+}
+
+/// 页面将要完成
+/// @param toIndex 刚出现的页面
+/// @param fromeIndex 刚消失了的页面
+- (void)viewDidChange:(NSInteger)toIndex fromeIndex:(NSInteger)fromeIndex {
+    [[self viewControllerAtIndex:toIndex] endAppearanceTransition];
+    [[self viewControllerAtIndex:fromeIndex] endAppearanceTransition];
+    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(toIndex , fromeIndex);
+    
+}
+
 #pragma mark -
 #pragma mark - UIScrollViewDelegate
 
@@ -450,45 +466,33 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         
         // 新页面将要滑出
         [self addChildViewControllerWithIndex:self.toPageIndex];
-        
-        [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:YES animated:YES];
-        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.toPageIndex , self.currentPageIndex);
-        
-        [self addNeighbourViewControllerWithIndex:self.toPageIndex];
+        [self viewWillChange:self.toPageIndex fromeIndex:self.currentPageIndex];
         
         return;
     }
     
     // 页面执行滑动中
     if (newToPage != self.toPageIndex) {
-        
-        [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
-        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.toPageIndex , self.currentPageIndex);
+        // 视图完成切换
+        [self viewDidChange:self.toPageIndex fromeIndex:self.currentPageIndex];
         
         // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑）
         if (ABS(self.toPageIndex - newToPage) >= 2) {
-            [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
-            [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
-            !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.toPageIndex);
             
-            [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-            [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
-            !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.toPageIndex);
+            // 视图将要切换
+            [self viewWillChange:self.currentPageIndex fromeIndex:self.toPageIndex];
+            // 视图完成切换
+            [self viewDidChange:self.currentPageIndex fromeIndex:self.toPageIndex];
+            [self addNeighbourViewControllerWithIndex:self.currentPageIndex];
             
             self.toPageIndex = self.currentPageIndex;
         } else {
             self.currentPageIndex = self.toPageIndex;
         }
         
+        // 视图将要切换
         [self addChildViewControllerWithIndex:newToPage];
-        
-        [[self viewControllerAtIndex:newToPage] beginAppearanceTransition:YES animated:YES];
-        [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(newToPage , self.toPageIndex);
-        
-        [self addNeighbourViewControllerWithIndex:newToPage];
+        [self viewWillChange:newToPage fromeIndex:self.toPageIndex];
         
         self.toPageIndex = newToPage;
     }
@@ -523,8 +527,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 
 /// 手指拖动引起的滚动结束时
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+    //    NSLog(@"手指拖动 离开后 引起的滑动结束 isDecelerating: %@", @(scrollView.isDecelerating));
     [self scrollViewDidEnd:scrollView];
-//    NSLog(@"手指拖动 离开后 引起的滑动结束 isDecelerating: %@", @(scrollView.isDecelerating));
 }
 
 /// 列表最终滚动结束时
@@ -532,14 +536,14 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     NSLog(@"scroll end ====================");
     
     if (self.currentPageIndex != self.toPageIndex && self.toPageIndex >= 0) {
-        [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
-        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.toPageIndex , self.currentPageIndex);
-        
-        self.currentPageIndex = self.toPageIndex;
+        // 视图完成切换
+        [self viewDidChange:self.toPageIndex fromeIndex:self.currentPageIndex];
+        [self addNeighbourViewControllerWithIndex:self.toPageIndex];
         
         // 移除多余视图
         [self removeNotNeighbourViewController];
+        
+        self.currentPageIndex = self.toPageIndex;
     }
 
     self.toPageIndex = -1;

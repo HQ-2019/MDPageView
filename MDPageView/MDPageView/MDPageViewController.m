@@ -37,9 +37,6 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 /// 手势拖动时将要前往页面的索引
 @property (nonatomic, assign) NSInteger toPageIndex;
 
-/// 手势拖动时记录ContentoffSet.x 判断滑动方向
-@property (nonatomic, assign) CGFloat originOffsetX;
-
 @end
 
 @implementation MDPageViewController
@@ -428,7 +425,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     // 根据当前滑动方向实时计算将要前往的页面
     NSInteger newToPage = 0;
-    if (self.originOffsetX < offsetX) {
+    CGPoint translation = [scrollView.panGestureRecognizer translationInView:scrollView.panGestureRecognizer.view.superview];
+    if (translation.x <= 0) {
         newToPage = ceil(offsetX / pageWidth);
     } else {
         newToPage = floor(offsetX / pageWidth);
@@ -499,9 +497,6 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 //    NSLog(@"手指拖动 即将开始  ==================== new start");
-    if (!scrollView.isDecelerating) {
-        self.originOffsetX = (CGFloat)scrollView.contentOffset.x;
-    }
 }
 
 /// 手指拖动 结束时
@@ -547,7 +542,6 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         [self removeNotNeighbourViewController];
     }
 
-    self.originOffsetX = (CGFloat)scrollView.contentOffset.x;
     self.toPageIndex = -1;
 }
 

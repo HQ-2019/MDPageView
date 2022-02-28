@@ -59,7 +59,7 @@
     [self.collectionView layoutSubviews];
     
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:index inSection:0];
-    //[self.collectionView selectItemAtIndexPath:indexPath animated:YES scrollPosition:UICollectionViewScrollPositionNone];
+//    [self.collectionView selectItemAtIndexPath:indexPath animated:YES scrollPosition:UICollectionViewScrollPositionNone];
     [self moveSliderViewAtIndexe:indexPath];
 }
 
@@ -99,10 +99,12 @@
 - (void)moveSliderViewAtIndexe:(NSIndexPath *)indexPath {
     UICollectionViewCell *cell = [self.collectionView cellForItemAtIndexPath:indexPath];
     
-    [self.sliderView.layer removeAllAnimations];
-    [UIView animateWithDuration:0.3 animations:^{
-        self.sliderView.frame = cell.frame;
-    }];
+    if (!CGRectEqualToRect(cell.frame, self.sliderView.frame)) {
+        [self.sliderView.layer removeAllAnimations];
+        [UIView animateWithDuration:0.3 animations:^{
+            self.sliderView.frame = cell.frame;
+        }];
+    }
 }
 
 @end

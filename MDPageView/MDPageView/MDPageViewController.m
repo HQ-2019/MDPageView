@@ -412,96 +412,104 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     // 回调滚动数据
     !self.viewScrollCallBack ?: self.viewScrollCallBack(scrollView.contentOffset, scrollView.contentSize, scrollView.isDragging);
     
-//    // 忽略由[setContentOffset:animated:]等非手势滑动引起的滚动
-//    if (!scrollView.isDragging && !scrollView.isTracking && !scrollView.isDecelerating) {
-//        return;
-//    }
-    
     // 忽略由[setContentOffset:animated:]等非手势滑动引起的滚动
-    if (!scrollView.isDragging) {
+    if (!scrollView.isDragging && !scrollView.isTracking && !scrollView.isDecelerating) {
         return;
     }
     
     CGFloat offsetX = (CGFloat)scrollView.contentOffset.x;
     CGFloat pageWidth = (CGFloat)scrollView.frame.size.width;
     
-    // 计算页面索引
-    NSInteger lastIndex = self.toPageIndex < 0 ? self.currentPageIndex : self.toPageIndex;
+    // 根据当前滑动方向实时计算将要前往的页面
+    NSInteger newToPage = 0;
     if (self.originOffsetX < offsetX) {
-        self.toPageIndex = ceil(offsetX / pageWidth);
+        newToPage = ceil(offsetX / pageWidth);
     } else {
-        self.toPageIndex = floor(offsetX / pageWidth);
+        newToPage = floor(offsetX / pageWidth);
     }
-    //    NSLog(@"currentPageIndex:  %@    lastIndex: %@    toPageIndex: %@     offset: %@   ", @(self.currentPageIndex), @(lastIndex), @(self.toPageIndex), @(offsetX));
-    // 判断是否滑到页面的边界，触发相关的页面生命周期函数
-    if ((self.toPageIndex != self.currentPageIndex && !scrollView.isDecelerating) || scrollView.isDecelerating) {
-        if (lastIndex != self.toPageIndex && self.toPageIndex >= 0 && self.toPageIndex < self.pageCount) {
-            // 新页面将要滑出
-            [self addChildViewControllerWithIndex:self.toPageIndex];
-            [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:YES animated:YES];
-            [self addNeighbourViewControllerWithIndex:self.toPageIndex];
-            
-            if (lastIndex == self.currentPageIndex) {
-                [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
-            }
-            
-            if (lastIndex != self.currentPageIndex && lastIndex >= 0 && lastIndex < self.pageCount) {
-                [[self viewControllerAtIndex:lastIndex] beginAppearanceTransition:NO animated:YES];
-                [[self viewControllerAtIndex:lastIndex] endAppearanceTransition];
-                
-                !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.toPageIndex, lastIndex);
-            }
+    
+    // 滑到了有效页面之外
+    if (newToPage < 0 || newToPage >= self.pageCount) {
+        return;
+    }
+    
+    // 从页面静止状态开始滑动
+    if (self.toPageIndex < 0 && newToPage >= 0 && newToPage < self.pageCount) {
+        
+        // 向边界外滑动
+        if (newToPage == self.currentPageIndex) {
+            return;
         }
+        
+        self.toPageIndex = newToPage;
+        self.lastPageIndex = self.currentPageIndex;
+        
+        // 新页面将要滑出
+        [self addChildViewControllerWithIndex:self.toPageIndex];
+        [self addNeighbourViewControllerWithIndex:self.toPageIndex];
+        [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:YES animated:YES];
+        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.toPageIndex , self.currentPageIndex);
+        
+        return;
+    }
+    
+    // 页面执行滑动中
+    if (newToPage != self.toPageIndex) {
+        
+        [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
+        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.toPageIndex , self.currentPageIndex);
+        
+        // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑）
+        if (ABS(self.toPageIndex - newToPage) >= 2) {
+            [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
+            [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
+            !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.toPageIndex);
+            
+            [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+            [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
+            !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.toPageIndex);
+            
+            self.toPageIndex = self.currentPageIndex;
+        } else {
+            self.currentPageIndex = self.toPageIndex;
+        }
+        
+        [self addChildViewControllerWithIndex:newToPage];
+        [self addNeighbourViewControllerWithIndex:newToPage];
+        
+        [[self viewControllerAtIndex:newToPage] beginAppearanceTransition:YES animated:YES];
+        [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(newToPage , self.toPageIndex);
+        
+        self.toPageIndex = newToPage;
     }
 }
 
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    NSLog(@"手指拖动 即将开始  ==================== new start");
-    if (scrollView.isDecelerating) {
+//    NSLog(@"手指拖动 即将开始  ==================== new start");
+    if (!scrollView.isDecelerating) {
         self.originOffsetX = (CGFloat)scrollView.contentOffset.x;
-        self.toPageIndex = self.currentPageIndex;
-    }
-}
-
-/// 手指拖动 即将结束
-- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView withVelocity:(CGPoint)velocity targetContentOffset:(inout CGPoint *)targetContentOffset {
-    NSLog(@"手指拖动 即将结束");
-    
-    CGFloat offsetX = (CGFloat)scrollView.contentOffset.x;
-    CGFloat pageWidth = (CGFloat)scrollView.frame.size.width;
-    
-    if (scrollView.isDecelerating) {
-        if (velocity.x > 0) {
-            // 页面向右滑
-            self.originOffsetX = floor(offsetX/pageWidth) * pageWidth;
-        } else {
-            // 页面向左滑
-            self.originOffsetX = ceil(offsetX/pageWidth) * pageWidth;
-        }
-    }
-    
-    // 手指离开时，刚好不需要减速
-    NSInteger i = (NSInteger)(offsetX * 100) % (NSInteger)(pageWidth * 100);
-    if (i == 0) {
-        [self scrollViewDidEnd:scrollView];
     }
 }
 
 /// 手指拖动 结束时
 /// decelerate为YES时列表会惯性滑动， 为NO时列表直接静止
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (decelerate) {
-        NSLog(@"手指拖动 结束时 页面减速");
+    if (!decelerate) {
+//        NSLog(@"手指拖动 结束时 页面直接停止");
+        [self scrollViewDidEnd:scrollView];
     } else {
-        NSLog(@"手指拖动 结束时 页面直接停止");
-//        [self scrollViewDidEnd:scrollView];
+//        NSLog(@"手指拖动 结束时 页面继续减速滑动");
     }
 }
 
 /// 自动滚动结束时,即调用setContentOffset/scrollRectVisible:animated:等函数并且animated为YES时引发的滑动
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
 //    NSLog(@"方法调用引起的滑动 结束");
+    [self scrollViewDidEnd:scrollView];
 }
 
 /// 手指拖动引起的滚动开始时
@@ -515,35 +523,23 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 //    NSLog(@"手指拖动 离开后 引起的滑动结束 isDecelerating: %@", @(scrollView.isDecelerating));
 }
 
-
 /// 列表最终滚动结束时
 - (void)scrollViewDidEnd:(UIScrollView *)scrollView {
-    NSLog(@"end ==================");
+    NSLog(@"scroll end =================================");
     
-    NSInteger oldIndex = self.currentPageIndex;
-    self.currentPageIndex = MAX(self.baseScrollView.contentOffset.x / scrollView.frame.size.width, 0);
-
-    if (oldIndex == self.currentPageIndex) {
-        if (self.toPageIndex >= 0 && self.toPageIndex < self.pageCount) {
-            [[self viewControllerAtIndex:oldIndex] beginAppearanceTransition:YES animated:YES];
-            [[self viewControllerAtIndex:self.toPageIndex] beginAppearanceTransition:NO animated:YES];
-
-            [[self viewControllerAtIndex:oldIndex] endAppearanceTransition];
-            [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
-
-            !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , oldIndex);
-        }
-    } else {
-        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+    if (self.currentPageIndex != self.toPageIndex && self.toPageIndex >= 0) {
         [[self viewControllerAtIndex:self.toPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , oldIndex);
+        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.toPageIndex , self.currentPageIndex);
+        
+        self.currentPageIndex = self.toPageIndex;
+        
+        // 移除多余视图
+        [self removeNotNeighbourViewController];
     }
 
     self.originOffsetX = (CGFloat)scrollView.contentOffset.x;
-    self.toPageIndex = self.currentPageIndex;
-
-    // 移除多余视图
-    [self removeNotNeighbourViewController];
+    self.toPageIndex = -1;
 }
 
 @end

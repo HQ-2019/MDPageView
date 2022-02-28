@@ -9,7 +9,25 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// 页面控制器容器组件，支持切换页面时预加载前后相邻的页面
+/// 页面控制器容器组件，支持页面切换后时预加载前后相邻的页面
+/// @code
+///  // 用例
+///  MDPageViewController *controller = [MDPageViewController new];
+///  [self addChildViewController:controller];
+///  [self.view addSubview:controller.view];
+///  [controller didMoveToParentViewController:self];
+///  [controller setViewControllers:self.viewControllers index:showIndex];
+///  controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
+///     NSLog(@"offset: %@  isDragging: %@", @(contentOffset.x), @(isDragging));
+///  };
+///  controller.viewWillChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
+///     NSLog(@"页面将要切换  %@ -> %@", @(fromIndex), @(toIndex));
+///  };
+///  controller.viewDidChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
+///     NSLog(@"页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
+///  };
+/// @endcode
+///
 @interface MDPageViewController : UIViewController
 
 /// 视图滚动时回调相关数据
@@ -17,6 +35,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param contentSize 滚动视图内容size
 /// @param isDragging 是否是手指拖动 YES-是
 @property (nonatomic, copy) void(^viewScrollCallBack)(CGPoint contentOffset, CGSize contentSize, BOOL isDragging);
+
+/// 子页面切换完成回调
+/// @param toIndex 前往的页面索引
+/// @param fromIndex 上一个显示的页面的索引
+@property (nonatomic, copy) void(^viewWillChangedCallBack)(NSInteger toIndex, NSInteger fromIndex);
 
 /// 子页面切换完成回调
 /// @param toIndex 前往的页面索引

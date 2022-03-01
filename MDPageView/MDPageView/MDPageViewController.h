@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 ///  [self addChildViewController:controller];
 ///  [self.view addSubview:controller.view];
 ///  [controller didMoveToParentViewController:self];
-///  [controller setViewControllers:self.viewControllers index:showIndex];
+///
 ///  controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
 ///     NSLog(@"offset: %@  isDragging: %@", @(contentOffset.x), @(isDragging));
 ///  };
@@ -26,6 +26,9 @@ NS_ASSUME_NONNULL_BEGIN
 ///  controller.viewDidChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
 ///     NSLog(@"页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
 ///  };
+///
+///  [controller updateViewControllers:self.viewControllers];
+///  [controller showPageAtIndex:showIndex animated:NO];
 /// @endcode
 ///
 @interface MDPageViewController : UIViewController
@@ -46,13 +49,13 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param fromIndex 上一个显示的页面的索引
 @property (nonatomic, copy) void(^viewDidChangedCallBack)(NSInteger toIndex, NSInteger fromIndex);
 
-/// 设置控制器列表
+/// 设置更新控制器列表
+/// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；
 /// @param viewControllers 控制器列表
-/// @param index 要展示的页面索引
-- (void)setViewControllers:(nullable NSArray<UIViewController *> *)viewControllers
-                     index:(NSInteger)index;
+- (void)updateViewControllers:(nullable NSArray<UIViewController *> *)viewControllers;
 
 /// 显示指定位置的页面
+/// 应在调用[updateViewControllers:]之后使用本方法
 /// @param index 页面索引
 /// @param animated 是否动画（如果开启动画，则自定义视图动画直线滑动效果）
 - (void)showPageAtIndex:(NSInteger)index animated:(BOOL)animated;

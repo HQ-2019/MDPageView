@@ -31,6 +31,16 @@
     [self.view addSubview:label];
 }
 
+- (void)viewWillLayoutSubviews {
+    [super viewWillLayoutSubviews];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+}
+
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);

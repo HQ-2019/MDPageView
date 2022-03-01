@@ -28,14 +28,17 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 /// 页面总数
 @property (nonatomic, assign) NSInteger pageCount;
 
-/// 当前显示视图在列表中的索引
+/// 当前显示视图在列表中的索引，默认值：-1
 @property (nonatomic, assign) NSInteger currentPageIndex;
 
-/// 上一次显示视图的索引
+/// 上一次显示视图的索引，默认值：-1
 @property (nonatomic, assign) NSInteger lastPageIndex;
 
-/// 手势拖动时将要前往页面的索引
+/// 手势拖动时将要前往页面的索引，默认值：-1
 @property (nonatomic, assign) NSInteger toPageIndex;
+
+/// 标记容器页面是否完成首次的viewDidDisappear
+@property (nonatomic, assign) BOOL didAppear;
 
 @end
 
@@ -46,35 +49,45 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     self.toPageIndex = -1;
     self.lastPageIndex = -1;
+    self.currentPageIndex = -1;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     
-    // 首次不调用
-    [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
-    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.lastPageIndex);
+    if (self.didAppear) {
+        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+    }
 }
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     
-    [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.lastPageIndex);
+    if (self.didAppear) {
+        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+    }
+    
+    self.didAppear = YES;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
     [super viewWillDisappear:animated];
     
-    [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
-    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.lastPageIndex);
+    if (self.didAppear) {
+        [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+    }
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     
-    [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.lastPageIndex);
+    if (self.didAppear) {
+        [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+    }
 }
 
 /// （关键）不自动调用子控制器的生命周期方法
@@ -118,35 +131,53 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 /// 获取索引对应的视图控制器
 /// @param index 索引
 - (UIViewController *)viewControllerAtIndex:(NSInteger)index {
-    return index >= self.viewControllers.count ? nil : self.viewControllers[index];
+    return index < 0 || index >= self.viewControllers.count ? nil : self.viewControllers[index];
 }
 
 #pragma mark -
 #pragma mark - 更新视图和控制器
 
-/// 设置控制器列表
+/// 设置更新控制器列表
+/// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；
 /// @param viewControllers 控制器列表
-/// @param index 要展示的页面索引
-- (void)setViewControllers:(nullable NSArray<UIViewController *> *)viewControllers
-                     index:(NSInteger)index {
+- (void)updateViewControllers:(nullable NSArray<UIViewController *> *)viewControllers {
+    
+    // 清空旧页面
+    if (self.currentPageIndex > 0) {
+        [self viewWillChange:-1 fromeIndex:self.currentPageIndex];
+        [self viewDidChange:self.currentPageIndex fromeIndex:-1];
+        [self removeAllViewController];
+        
+        self.toPageIndex = -1;
+        self.lastPageIndex = -1;
+        self.currentPageIndex = -1;
+    }
+    
+    // 记录子控制器列表
     self.viewControllers = viewControllers;
-    self.currentPageIndex = index;
+    
+    // 更新列表容器
     [self updateScrollViewContentSize];
-
-    [self addChildViewControllerWithIndex:index];
-//    [[self viewControllerWithIndex:index] beginAppearanceTransition:YES animated:NO];
-//    [[self viewControllerWithIndex:index] endAppearanceTransition];
-    [self addNeighbourViewControllerWithIndex:index];
-
     [self updateScrollViewContentOffset:NO];
 }
 
 /// 显示指定位置的页面
+/// 应在调用[updateViewControllers:]之后使用本方法
 /// @param index 页面索引
 /// @param animated 是否动画（如果开启动画，则自定义视图动画直线滑动效果）
 - (void)showPageAtIndex:(NSInteger)index animated:(BOOL)animated {
     
-    if (index < 0 || index >= self.viewControllers.count || index == self.currentPageIndex) {
+    if (self.viewControllers.count <= 0) {
+        NSLog(@"请先执行[updateViewControllers:]设置子控制器列表");
+        return;
+    }
+    
+    if (index < 0 || index >= self.viewControllers.count) {
+        NSLog(@"请正确设置页面索引，有效值应在范围 %@~%@", @(0), @(self.viewControllers.count - 1));
+        return;
+    }
+    
+    if (index == self.currentPageIndex) {
         return;
     }
     
@@ -353,21 +384,10 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
 /// 移除视图控制器
 /// @param index 索引
 - (void)removeChildViewControllerWithIndex:(NSInteger)index {
-    if (index == self.currentPageIndex || index + 1 == self.currentPageIndex || index - 1 == self.currentPageIndex) {
-        return;
-    }
     UIViewController *controller = [self viewControllerAtIndex:index];
     [controller willMoveToParentViewController:nil];
     [controller.view removeFromSuperview];
     [controller removeFromParentViewController];
-}
-
-/// 移除非相邻视图控制器
-/// @param index 索引
-- (void)removeNotNeighbourViewControllerWithIndex:(NSInteger)index {
-    [self removeChildViewControllerWithIndex:index];
-    [self removeChildViewControllerWithIndex:index - 1];
-    [self removeChildViewControllerWithIndex:index + 1];
 }
 
 /// 移除非相邻视图控制器
@@ -380,6 +400,14 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     [remove enumerateObjectsUsingBlock:^(NSNumber * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         [self removeChildViewControllerWithIndex:obj.integerValue];
     }];
+}
+
+/// 清除所有添加过的视图控制器
+- (void)removeAllViewController {
+    [self.addedVCIndexs enumerateObjectsUsingBlock:^(NSNumber * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        [self removeChildViewControllerWithIndex:obj.integerValue];
+    }];
+    self.addedVCIndexs = nil;
 }
 
 /// 将视图位置移动到原始位置

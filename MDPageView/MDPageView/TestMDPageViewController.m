@@ -98,4 +98,24 @@
     return _viewControllers;
 }
 
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+}
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+}
+
+- (void)viewWillDisappear:(BOOL)animated {
+    [super viewWillDisappear:animated];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+}
+
+- (void)viewDidDisappear:(BOOL)animated {
+    [super viewDidDisappear:animated];
+    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+}
+
 @end

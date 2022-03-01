@@ -33,12 +33,12 @@
 
 - (void)viewWillLayoutSubviews {
     [super viewWillLayoutSubviews];
-    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+//    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
 }
 
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
-    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+//    NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
 }
 
 - (void)viewWillAppear:(BOOL)animated {

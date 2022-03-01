@@ -63,6 +63,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 获取页面总数
 - (NSInteger)pageCount;
 
+/// 获取当前页面控制器索引
+- (NSInteger)currentPageIndex;
+
 /// 获取索引对应的视图控制器
 /// @param index 索引
 - (UIViewController *)viewControllerAtIndex:(NSInteger)index;

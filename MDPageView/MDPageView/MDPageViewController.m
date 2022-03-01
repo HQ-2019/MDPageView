@@ -57,7 +57,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , -1);
     }
 }
 
@@ -66,7 +66,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , -1);
     }
     
     self.didAppear = YES;
@@ -77,7 +77,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(-1 , self.currentPageIndex);
     }
 }
 
@@ -86,7 +86,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , self.currentPageIndex);
+        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(-1 , self.currentPageIndex);
     }
 }
 

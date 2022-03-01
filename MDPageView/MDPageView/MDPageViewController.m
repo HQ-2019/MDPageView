@@ -502,6 +502,8 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     // 页面执行滑动中
     if (newToPage != self.toPageIndex) {
         // 视图完成切换
+        // 如从2->3滑过一点就放手，页面会回滚到2，将2->3的动作结束，即调用页面生命周期viewDidAppear/Disappear，但是实际上页面并没有真正的完全显示或消失
+        // 如从2->3->4，先将2->3结束再开始3->4生命周期
         [self viewDidChange:self.toPageIndex fromeIndex:self.currentPageIndex];
         
         // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑）

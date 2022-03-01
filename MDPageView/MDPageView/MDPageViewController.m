@@ -203,10 +203,10 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
         // 视图完成切换
         [self viewDidChange:self.currentPageIndex fromeIndex:self.lastPageIndex];
         
-        // 将多余视图移除
+        // 将非相邻视图移除
         [self removeNotNeighbourViewController];
         
-        // 将当前视图的前后视图添加预加载
+        // 预加载相邻视图
         [self addNeighbourViewControllerWithIndex:self.currentPageIndex];
         
     };
@@ -436,7 +436,7 @@ typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
     !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(toIndex , fromeIndex);
 }
 
-/// 页面将要完成
+/// 页面完成切换
 /// @param toIndex 刚出现的页面
 /// @param fromeIndex 刚消失了的页面
 - (void)viewDidChange:(NSInteger)toIndex fromeIndex:(NSInteger)fromeIndex {

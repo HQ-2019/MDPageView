@@ -9,7 +9,11 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-/// 页面控制器容器组件，支持页面切换后时预加载前后相邻的页面
+/// 页面控制器容器组件：
+/// 支持页面切换后时预加载前后相邻的页面、
+/// 支持点击跨多个页面切换时只显示当前页和目标页的动画、
+/// 支持重置子控制器列表、
+///
 /// @code
 ///  // 用例
 ///  MDPageViewController *controller = [MDPageViewController new];

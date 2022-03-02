@@ -84,6 +84,14 @@
     }
 }
 
+- (void)viewDidLayoutSubviews {
+    [super viewDidLayoutSubviews];
+    
+    // 更新列表容器
+    [self updateScrollViewContentSize];
+    [self updateScrollViewContentOffset:NO];
+}
+
 /// （关键）不自动调用子控制器的生命周期方法
 - (BOOL)shouldAutomaticallyForwardAppearanceMethods {
     return NO;
@@ -337,7 +345,10 @@
 /// @param animations 是否开始动画
 - (void)updateScrollViewContentOffset:(BOOL)animations {
     CGFloat x = MAX(self.currentPageIndex * self.baseScrollView.bounds.size.width, 0);
-    [self.baseScrollView setContentOffset:CGPointMake(x, 0) animated:animations];
+    CGPoint offset = CGPointMake(x, 0);
+    if (!CGPointEqualToPoint(offset, self.baseScrollView.contentOffset)) {
+        [self.baseScrollView setContentOffset:offset animated:animations];
+    }
 }
 
 /// 添加与索引相邻的视图

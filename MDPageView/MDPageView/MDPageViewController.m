@@ -8,12 +8,6 @@
 
 #import "MDPageViewController.h"
 
-/// 页面滚动方向
-typedef NS_ENUM(NSInteger, MDPageScrollDirection) {
-    MDPageScrollDirection_Right,
-    MDPageScrollDirection_Left,
-};
-
 @interface MDPageViewController () <UIScrollViewDelegate>
 
 /// 底部滚动视图(视图容器)

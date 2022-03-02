@@ -107,6 +107,7 @@
         _baseScrollView.showsVerticalScrollIndicator = NO;
         _baseScrollView.showsHorizontalScrollIndicator = NO;
         _baseScrollView.frame = self.view.bounds;
+        _baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self.view addSubview:_baseScrollView];
     }
     return _baseScrollView;

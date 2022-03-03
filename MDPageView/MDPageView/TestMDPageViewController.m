@@ -39,13 +39,13 @@
     controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
         //        NSLog(@"Offset: %@    isDragging: %@", @(contentOffset.x), @(isDragging));
     };
-    controller.viewWillChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
+    controller.viewWillChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
         //        NSLog(@"----------------------------------   页面将要切换  %@ -> %@", @(fromIndex), @(toIndex));
-        [weakSelf.tabView showAtIndex:toIndex];
+        [weakSelf.tabView showAtIndex:appearIndex];
     };
-    controller.viewDidChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
-        NSLog(@"==================================   页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
-        [weakSelf.tabView showAtIndex:toIndex];
+    controller.viewDidChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+        NSLog(@"==================================   页面切换完成  %@ -> %@", @(disappearIndex), @(appearIndex));
+        [weakSelf.tabView showAtIndex:appearIndex];
     };
     
     

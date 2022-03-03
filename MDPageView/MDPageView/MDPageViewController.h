@@ -24,11 +24,11 @@ NS_ASSUME_NONNULL_BEGIN
 ///  controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
 ///     NSLog(@"offset: %@  isDragging: %@", @(contentOffset.x), @(isDragging));
 ///  };
-///  controller.viewWillChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
-///     NSLog(@"页面将要切换  %@ -> %@", @(fromIndex), @(toIndex));
+///  controller.viewWillChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+///     NSLog(@"页面将要切换  %@ -> %@", @(disappearIndex), @(appearIndex));
 ///  };
-///  controller.viewDidChangedCallBack = ^(NSInteger toIndex, NSInteger fromIndex) {
-///     NSLog(@"页面切换完成  %@ -> %@", @(fromIndex), @(toIndex));
+///  controller.viewDidChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+///     NSLog(@"页面切换完成  %@ -> %@", @(disappearIndex), @(appearIndex));
 ///  };
 ///
 ///  [controller updateViewControllers:self.viewControllers];
@@ -44,14 +44,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy) void(^viewScrollCallBack)(CGPoint contentOffset, CGSize contentSize, BOOL isDragging);
 
 /// 子页面切换完成回调
-/// @param toIndex 前往的页面索引
-/// @param fromIndex 上一个显示的页面的索引
-@property (nonatomic, copy) void(^viewWillChangedCallBack)(NSInteger toIndex, NSInteger fromIndex);
+/// @param appearIndex 将要显示页面索引
+/// @param disappearIndex 将要消失页面的索引
+@property (nonatomic, copy) void(^viewWillChangedCallBack)(NSInteger appearIndex, NSInteger disappearIndex);
 
 /// 子页面切换完成回调
-/// @param toIndex 前往的页面索引
-/// @param fromIndex 上一个显示的页面的索引
-@property (nonatomic, copy) void(^viewDidChangedCallBack)(NSInteger toIndex, NSInteger fromIndex);
+/// @param appearIndex 完成显示页面索引
+/// @param disappearIndex 完成消失页面的索引
+@property (nonatomic, copy) void(^viewDidChangedCallBack)(NSInteger appearIndex, NSInteger disappearIndex);
 
 /// 设置更新控制器列表
 /// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；

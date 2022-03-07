@@ -488,7 +488,7 @@
     }
     
     // 从页面静止状态开始滑动
-    if (self.toPageIndex < 0 && newToPage >= 0 && newToPage < self.pageCount) {
+    if (self.toPageIndex < 0) {
         
         // 向边界外滑动
         if (newToPage == self.currentPageIndex) {
@@ -505,16 +505,20 @@
         return;
     }
     
-    // 页面执行滑动中
+    // 滑动过程中，当newToPage不等于self.toPageIndex时，意味着newToPage为将要出现的页面，而self.toPageIndex为将要消失的页面
     if (newToPage != self.toPageIndex) {
-        // 视图完成切换
-        // 如从2->3滑过一点就放手，页面会回滚到2，将2->3的动作结束，即调用页面生命周期viewDidAppear/Disappear，但是实际上页面并没有真正的完全显示或消失
-        // 如从2->3->4，先将2->3结束再开始3->4生命周期
-        [self viewDidChange:self.toPageIndex fromeIndex:self.currentPageIndex];
         
-        // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑）
+        // 视图完成切换
+        // 如从2->3，当3页面未完全显示时又从3->2，实际页面3未完全显示页面2未完全消失，因此不执行2->3的viewDidAppear/Disappear
+        // 如从2->3->4，先将2->3结束再开始3->4生命周期，即执行2->3的viewDidAppear/Disappear
+        if (self.currentPageIndex != newToPage) {
+            [self viewDidChange:self.toPageIndex fromeIndex:self.currentPageIndex];
+        }
+        
+        // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑, 速度够快会出现此类问题）
         if (ABS(self.toPageIndex - newToPage) >= 2) {
             
+            NSLog(@"划得太猛，跨页面切换了");
             // 视图将要切换
             [self viewWillChange:self.currentPageIndex fromeIndex:self.toPageIndex];
             // 视图完成切换

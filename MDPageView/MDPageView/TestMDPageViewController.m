@@ -44,28 +44,28 @@
         [weakSelf.tabView showAtIndex:appearIndex];
     };
     controller.viewDidChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
-        NSLog(@"==================================   页面切换完成  %@ -> %@", @(disappearIndex), @(appearIndex));
+        NSLog(@"==================================   页面切换完成  %@ -> %@ \n", @(disappearIndex), @(appearIndex));
         [weakSelf.tabView showAtIndex:appearIndex];
     };
     
     
-    // 模拟重置
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        NSLog(@"重置 ################################");
-        NSArray *colors = @[ UIColor.grayColor, UIColor.orangeColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor,UIColor.yellowColor, UIColor.purpleColor];
-        NSMutableArray *vcList = @[].mutableCopy;
-        [colors enumerateObjectsUsingBlock:^(UIColor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-            MDSubViewController *controller = [MDSubViewController new];
-            controller.content = [NSString stringWithFormat:@"页面： %@", @(idx)];
-            controller.color = obj;
-            [vcList addObject:controller];
-        }];
-        self.viewControllers = vcList;
-        [controller updateViewControllers:vcList];
-        [controller showPageAtIndex:2 animated:NO];
-        
-        self.tabView.count = self.viewControllers.count;
-    });
+    // 模拟重置子视图控制器列表
+//    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+//        NSLog(@"重置 ################################");
+//        NSArray *colors = @[ UIColor.grayColor, UIColor.orangeColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor,UIColor.yellowColor, UIColor.purpleColor];
+//        NSMutableArray *vcList = @[].mutableCopy;
+//        [colors enumerateObjectsUsingBlock:^(UIColor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+//            MDSubViewController *controller = [MDSubViewController new];
+//            controller.content = [NSString stringWithFormat:@"页面： %@", @(idx)];
+//            controller.color = obj;
+//            [vcList addObject:controller];
+//        }];
+//        self.viewControllers = vcList;
+//        [controller updateViewControllers:vcList];
+//        [controller showPageAtIndex:2 animated:NO];
+//        
+//        self.tabView.count = self.viewControllers.count;
+//    });
     
     [self.tabView showAtIndex:showIndex];
     self.tabView.clickIndexBlock = ^(NSInteger index) {

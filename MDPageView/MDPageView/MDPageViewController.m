@@ -131,9 +131,14 @@
     return self.viewControllers.count;
 }
 
+/// 获取当前显示的视图控制器
+- (nullable UIViewController *)currentViewController {
+    return [self viewControllerAtIndex:self.currentPageIndex];
+}
+
 /// 获取索引对应的视图控制器
 /// @param index 索引
-- (UIViewController *)viewControllerAtIndex:(NSInteger)index {
+- (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index {
     return index < 0 || index >= self.viewControllers.count ? nil : self.viewControllers[index];
 }
 

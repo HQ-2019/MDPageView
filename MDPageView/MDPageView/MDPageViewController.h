@@ -70,9 +70,12 @@ NS_ASSUME_NONNULL_BEGIN
 /// 获取当前页面控制器索引
 - (NSInteger)currentPageIndex;
 
+/// 获取当前显示的视图控制器
+- (nullable UIViewController *)currentViewController;
+
 /// 获取索引对应的视图控制器
 /// @param index 索引
-- (UIViewController *)viewControllerAtIndex:(NSInteger)index;
+- (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index;
 
 @end
 

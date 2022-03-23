@@ -17,8 +17,11 @@
 /// 底部滚动视图(视图容器)
 @property (nonatomic, strong) UIScrollView *baseScrollView;
 
-/// 设置头视图
+/// 头视图
 @property (nonatomic, strong) UIView *headerView;
+
+/// 悬浮头视图
+@property (nonatomic, strong) UIView *subHeaderView;
 
 /// 视图控制器列表
 @property (nonatomic, strong) NSArray<UIViewController *> *viewControllers;
@@ -96,6 +99,10 @@
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
+    CGRect rect = self.baseScrollView.frame;
+    rect.size.height = rect.size.height - self.subHeaderView.bounds.size.height;
+    self.baseScrollView.frame = rect;
+    
     // 更新列表容器
     [self updateScrollViewContentSize];
     [self updateScrollViewContentOffset:NO];
@@ -126,6 +133,10 @@
         _bbScrollView.frame = self.view.bounds;
         _bbScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self.view addSubview:_bbScrollView];
+        if (@available(iOS 11.0, *)) {
+            _bbScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+
     }
     return _bbScrollView;
 }
@@ -139,12 +150,11 @@
         _baseScrollView.pagingEnabled = YES;
         _baseScrollView.showsVerticalScrollIndicator = NO;
         _baseScrollView.showsHorizontalScrollIndicator = NO;
-        _baseScrollView.frame = CGRectMake(0, self.headerView.frame.size.height, self.view.bounds.size.width, self.view.bounds.size.height);
+        _baseScrollView.frame = CGRectMake(0, self.headerView.frame.size.height + self.subHeaderView.frame.size.height, self.view.bounds.size.width, self.view.bounds.size.height);
         _baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        if (_bbScrollView) {
-            [_bbScrollView addSubview:_baseScrollView];
-        } else {
-            [self.view addSubview:_baseScrollView];
+        [self.bbScrollView addSubview:_baseScrollView];
+        if (@available(iOS 11.0, *)) {
+            _baseScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
         }
     }
     return _baseScrollView;
@@ -178,6 +188,18 @@
         self.headerView = headerView;
         [self.bbScrollView addSubview:self.headerView];
         
+    }
+}
+
+/// 设置更新悬浮headerView
+/// @param subHeaderView headerView
+- (void)updateSubHeaderView:(UIView *)subHeaderView {
+    if (self.subHeaderView != subHeaderView) {
+        self.subHeaderView = subHeaderView;
+        CGRect rect = subHeaderView.bounds;
+        rect.origin.y = self.headerView.bounds.size.height;
+        self.subHeaderView.frame = rect;
+        [self.bbScrollView addSubview:self.subHeaderView];
     }
 }
 
@@ -378,15 +400,15 @@
 /// 更新滚动视图内容size
 - (void)updateScrollViewContentSize {
     CGFloat width = MAX(self.baseScrollView.bounds.size.width, self.pageCount * self.baseScrollView.bounds.size.width);
-    CGSize size = CGSizeMake(width, self.baseScrollView.bounds.size.height);
+    CGSize size = CGSizeMake(width, 0);
     
     if (!CGSizeEqualToSize(size, self.baseScrollView.contentSize)) {
         [self.baseScrollView setContentSize: size];
     }
     
     if (self.headerView) {
-        CGFloat height = self.headerView.frame.size.height + self.baseScrollView.frame.size.height;
-        CGSize size1 = CGSizeMake(self.bbScrollView.frame.size.width, height);
+        CGFloat height = self.headerView.frame.size.height + self.subHeaderView.frame.size.height + self.baseScrollView.frame.size.height;
+        CGSize size1 = CGSizeMake(0, height);
         if (!CGSizeEqualToSize(size1, self.bbScrollView.contentSize)) {
             [self.bbScrollView setContentSize: size1];
         }
@@ -527,10 +549,10 @@
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     if (scrollView == _bbScrollView) {
         if (!self.superscroll) {
-            self.bbScrollView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height - 40);
+            self.bbScrollView.contentOffset = CGPointMake(0, self.subHeaderView.frame.origin.y);
         } else {
-            if (scrollView.contentOffset.y >= self.headerView.bounds.size.height - 40) {
-                self.bbScrollView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height - 40);
+            if (scrollView.contentOffset.y >= self.subHeaderView.frame.origin.y) {
+                self.bbScrollView.contentOffset = CGPointMake(0, self.subHeaderView.frame.origin.y);
                 self.superscroll = NO;
             }
         }
@@ -618,17 +640,11 @@
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 //    NSLog(@"手指拖动 即将开始  ==================== new start");
-    if (scrollView == self.baseScrollView) {
-        _bbScrollView.scrollEnabled = NO;
-    }
 }
 
 /// 手指拖动 结束时
 /// decelerate为YES时列表会惯性滑动， 为NO时列表直接静止
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
-    if (scrollView == self.baseScrollView) {
-        _bbScrollView.scrollEnabled = YES;
-    }
     if (!decelerate) {
 //        NSLog(@"手指拖动 结束时 页面直接停止");
         [self scrollViewDidEnd:scrollView];

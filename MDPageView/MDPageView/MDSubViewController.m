@@ -25,6 +25,13 @@
 }
 
 - (void)initSubView {
+    UILabel *label = [UILabel new];
+    label.frame = CGRectMake(100, 200, 100, 50);
+    label.textAlignment = NSTextAlignmentCenter;
+    label.backgroundColor = UIColor.purpleColor;
+    label.text = self.content;
+    [self.view addSubview:label];
+    
     if (self.showListView) {
         UITableView *tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
         tableView.frame = self.view.bounds;
@@ -34,12 +41,11 @@
         tableView.dataSource = self;
         [tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
         [self.view addSubview:tableView];
+        if (@available(iOS 11.0, *)) {
+            tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+        tableView.tableHeaderView = label;
     }
-    
-    UILabel *label = [UILabel new];
-    label.frame = CGRectMake(100, 200, 100, 50);
-    label.text = self.content;
-    [self.view addSubview:label];
 }
 
 - (void)viewWillLayoutSubviews {

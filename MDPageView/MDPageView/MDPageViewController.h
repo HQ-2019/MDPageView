@@ -68,6 +68,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param headerView headerView
 - (void)updateHeaderView:(UIView *)headerView;
 
+/// 设置更新悬浮headerView
+/// @param subHeaderView subHeaderView
+- (void)updateSubHeaderView:(UIView *)subHeaderView;
+
 /// 获取页面总数
 - (NSInteger)pageCount;
 

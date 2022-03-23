@@ -77,6 +77,16 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index;
 
+/// 设置更新headerView
+/// @param headerView headerView
+- (void)updateHeaderView:(UIView *)headerView;
+
+/// 设置更新悬浮的headerView
+/// @param subHeaderView headerView
+- (void)updateSubHeaderView:(UIView *)subHeaderView;
+
+- (void)childScrolling:(UIScrollView *)scrollView index:(NSInteger)index;
+
 @end
 
 NS_ASSUME_NONNULL_END

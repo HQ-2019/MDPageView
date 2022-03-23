@@ -7,7 +7,7 @@
 
 #import "MDSubViewController.h"
 
-@interface MDSubViewController ()
+@interface MDSubViewController () <UITableViewDelegate, UITableViewDataSource>
 
 @end
 
@@ -25,6 +25,21 @@
 }
 
 - (void)initSubView {
+    
+    if (self.showListView) {
+        UITableView *tableView = [[UITableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
+        tableView.frame = self.view.bounds;
+        tableView.backgroundColor = UIColor.grayColor;
+        tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        tableView.delegate = self;
+        tableView.dataSource = self;
+        [tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+        [self.view addSubview:tableView];
+        if (@available(iOS 11.0, *)) {
+            tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    
     UILabel *label = [UILabel new];
     label.frame = CGRectMake(100, 200, 100, 50);
     label.text = self.content;
@@ -59,6 +74,25 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+}
+
+#pragma mark -
+#pragma mark - UITableViewDelegate / UITableViewDataSource
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 20;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
+    
+    cell.textLabel.text = [NSString stringWithFormat:@"列表 - %@", @(indexPath.row)];
+    
+    return cell;
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    !self.childDidScroll ?: self.childDidScroll(scrollView);
 }
 
 @end

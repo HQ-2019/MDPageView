@@ -7,11 +7,20 @@
 
 
 #import "MDPageViewController.h"
+#import "MDBaseTableView.h"
 
-@interface MDPageViewController () <UIScrollViewDelegate>
+@interface MDPageViewController () <UIScrollViewDelegate, UITableViewDelegate, UITableViewDataSource>
+
+@property (nonatomic, strong) MDBaseTableView *baseTableView;
 
 /// 底部滚动视图(视图容器)
 @property (nonatomic, strong) UIScrollView *baseScrollView;
+
+/// 头视图
+@property (nonatomic, strong) UIView *headerView;
+
+/// 悬浮头视图
+@property (nonatomic, strong) UIView *subHeaderView;
 
 /// 视图控制器列表
 @property (nonatomic, strong) NSArray<UIViewController *> *viewControllers;
@@ -33,6 +42,8 @@
 
 /// 标记容器页面是否完成首次的viewDidDisappear
 @property (nonatomic, assign) BOOL didAppear;
+
+@property (nonatomic, assign) BOOL superscroll;
 
 @end
 
@@ -105,6 +116,26 @@
     return _addedVCIndexs;
 }
 
+- (MDBaseTableView *)baseTableView {
+    if (!_baseTableView) {
+        _baseTableView = [[MDBaseTableView alloc] initWithFrame:self.view.bounds style:UITableViewStylePlain];
+        _baseTableView.delegate = self;
+        _baseTableView.dataSource = self;
+//        _baseTableView.bounces = NO;
+        _baseTableView.pagingEnabled = YES;
+        _baseTableView.showsVerticalScrollIndicator = NO;
+        _baseTableView.showsHorizontalScrollIndicator = NO;
+        _baseTableView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [_baseTableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"cell"];
+        [self.view addSubview:_baseTableView];
+        _baseTableView.contentInset = UIEdgeInsetsZero;
+        if (@available(iOS 11.0, *)) {
+            _baseTableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    return _baseTableView;
+}
+
 /// 滚动视图(视图容器)
 - (UIScrollView *)baseScrollView {
     if (!_baseScrollView) {
@@ -116,7 +147,7 @@
         _baseScrollView.showsHorizontalScrollIndicator = NO;
         _baseScrollView.frame = self.view.bounds;
         _baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [self.view addSubview:_baseScrollView];
+//        [self.view addSubview:_baseScrollView];
     }
     return _baseScrollView;
 }
@@ -140,6 +171,20 @@
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index {
     return index < 0 || index >= self.viewControllers.count ? nil : self.viewControllers[index];
+}
+
+/// 设置更新headerView
+/// @param headerView headerView
+- (void)updateHeaderView:(UIView *)headerView {
+    self.headerView = headerView;
+    self.baseTableView.tableHeaderView = headerView;
+}
+
+/// 设置更新悬浮的headerView
+/// @param subHeaderView headerView
+- (void)updateSubHeaderView:(UIView *)subHeaderView {
+    self.subHeaderView = subHeaderView;
+    [self.baseTableView reloadData];
 }
 
 #pragma mark -
@@ -338,6 +383,8 @@
 
 /// 更新滚动视图内容size
 - (void)updateScrollViewContentSize {
+    [self.baseTableView reloadData];
+    self.baseScrollView.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - self.subHeaderView.bounds.size.height);
     CGFloat width = MAX(self.baseScrollView.bounds.size.width, self.pageCount * self.baseScrollView.bounds.size.width);
     CGSize size = CGSizeMake(width, self.baseScrollView.bounds.size.height);
     
@@ -455,7 +502,22 @@
     [[self viewControllerAtIndex:fromeIndex] endAppearanceTransition];
     !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(toIndex , fromeIndex);
     
+//    self.superscroll = YES;
+//    self.baseTableView.scrollEnabled = YES;
 }
+
+#pragma mark -
+#pragma mark -
+- (void)childScrolling:(UIScrollView *)scrollView index:(NSInteger)index {
+    if (self.superscroll) {
+        scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, 0);
+    } else {
+        if (scrollView.contentOffset.y <= 0) {
+            self.superscroll = YES;
+        }
+    }
+}
+
 
 #pragma mark -
 #pragma mark - UIScrollViewDelegate
@@ -465,6 +527,20 @@
 /// isTracking 表示当前滚动是否是跟随手指的滑动
 /// isDecelerating 表示正在减速滚动
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    
+    if (scrollView == self.baseTableView) {
+        if (!self.superscroll) {
+            self.baseTableView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height);
+        } else {
+            if (scrollView.contentOffset.y >= self.headerView.bounds.size.height) {
+                self.baseTableView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height);
+                self.superscroll = NO;
+            }
+        }
+        return;
+    }
+
+    
 //    NSLog(@"isTracking: %@   isDecelerating: %@   isDragging: %@", @(scrollView.isTracking), @(scrollView.isDecelerating), @(scrollView.isDragging));
     
     // 回调滚动数据
@@ -546,11 +622,20 @@
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 //    NSLog(@"手指拖动 即将开始  ==================== new start");
+    if (scrollView == self.baseTableView) {
+//        self.baseTableView.scrollEnabled = NO;
+        return;
+    }
 }
 
 /// 手指拖动 结束时
 /// decelerate为YES时列表会惯性滑动， 为NO时列表直接静止
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (scrollView == self.baseTableView) {
+//        self.baseTableView.scrollEnabled = YES;
+        return;
+    }
+    
     if (!decelerate) {
 //        NSLog(@"手指拖动 结束时 页面直接停止");
         [self scrollViewDidEnd:scrollView];
@@ -562,6 +647,10 @@
 /// 自动滚动结束时,即调用setContentOffset/scrollRectVisible:animated:等函数并且animated为YES时引发的滑动
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
 //    NSLog(@"方法调用引起的滑动 结束");
+    if (scrollView == self.baseTableView) {
+        return;
+    }
+    
     [self scrollViewDidEnd:scrollView];
 }
 
@@ -573,11 +662,19 @@
 /// 手指拖动引起的滚动结束时
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     //    NSLog(@"手指拖动 离开后 引起的滑动结束 isDecelerating: %@", @(scrollView.isDecelerating));
+    
+    if (scrollView == self.baseTableView) {
+        return;
+    }
+    
     [self scrollViewDidEnd:scrollView];
 }
 
 /// 列表最终滚动结束时
 - (void)scrollViewDidEnd:(UIScrollView *)scrollView {
+    if (scrollView == self.baseTableView) {
+        return;
+    }
     NSLog(@"scroll end ====================");
     
     if (self.currentPageIndex != self.toPageIndex && self.toPageIndex >= 0) {
@@ -592,6 +689,42 @@
     }
 
     self.toPageIndex = -1;
+}
+
+#pragma mark -
+#pragma mark - UITableViewDataSource
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    return 1;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell" forIndexPath:indexPath];
+    [cell.contentView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    [cell.contentView addSubview:self.baseScrollView];
+    self.baseScrollView.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height - self.subHeaderView.bounds.size.height);
+    self.baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    return cell;
+}
+
+#pragma mark - UITableViewDelegate
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section {
+    return self.subHeaderView;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section {
+    return nil;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return self.baseScrollView.bounds.size.height;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
+    return self.subHeaderView.bounds.size.height;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForFooterInSection:(NSInteger)section {
+    return 0.0001;
 }
 
 @end

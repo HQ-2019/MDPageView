@@ -18,6 +18,7 @@
 		05054EF727BE338E007C4520 /* MDPageViewUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054EF627BE338E007C4520 /* MDPageViewUITests.m */; };
 		05054EF927BE338E007C4520 /* MDPageViewUITestsLaunchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054EF827BE338E007C4520 /* MDPageViewUITestsLaunchTests.m */; };
 		05054F0727BE33D0007C4520 /* MDSubViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054F0627BE33D0007C4520 /* MDSubViewController.m */; };
+		054305D527EACC7600AF66AD /* MDBaseTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 054305D427EACC7600AF66AD /* MDBaseTableView.m */; };
 		0548521A27C77EFC00BD4F26 /* TestUIPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0548521927C77EFC00BD4F26 /* TestUIPageViewController.m */; };
 		0548521D27C77F1200BD4F26 /* TestMDPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0548521C27C77F1200BD4F26 /* TestMDPageViewController.m */; };
 		055EAA2427BF77360051B7C6 /* MDPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 055EAA2327BF77360051B7C6 /* MDPageViewController.m */; };
@@ -62,6 +63,8 @@
 		05054EF827BE338E007C4520 /* MDPageViewUITestsLaunchTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDPageViewUITestsLaunchTests.m; sourceTree = "<group>"; };
 		05054F0527BE33D0007C4520 /* MDSubViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MDSubViewController.h; sourceTree = "<group>"; };
 		05054F0627BE33D0007C4520 /* MDSubViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MDSubViewController.m; sourceTree = "<group>"; };
+		054305D327EACC7600AF66AD /* MDBaseTableView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDBaseTableView.h; sourceTree = "<group>"; };
+		054305D427EACC7600AF66AD /* MDBaseTableView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDBaseTableView.m; sourceTree = "<group>"; };
 		0548521827C77EFC00BD4F26 /* TestUIPageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestUIPageViewController.h; sourceTree = "<group>"; };
 		0548521927C77EFC00BD4F26 /* TestUIPageViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestUIPageViewController.m; sourceTree = "<group>"; };
 		0548521B27C77F1200BD4F26 /* TestMDPageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestMDPageViewController.h; sourceTree = "<group>"; };
@@ -138,6 +141,8 @@
 				05054F0627BE33D0007C4520 /* MDSubViewController.m */,
 				055EBDCB27C4CBD000CBFA70 /* MDTabView.h */,
 				055EBDCC27C4CBD000CBFA70 /* MDTabView.m */,
+				054305D327EACC7600AF66AD /* MDBaseTableView.h */,
+				054305D427EACC7600AF66AD /* MDBaseTableView.m */,
 				05054ED927BE338B007C4520 /* Main.storyboard */,
 				05054EDC27BE338E007C4520 /* Assets.xcassets */,
 				05054EDE27BE338E007C4520 /* LaunchScreen.storyboard */,
@@ -299,6 +304,7 @@
 				055EAA2427BF77360051B7C6 /* MDPageViewController.m in Sources */,
 				055EBDCA27C4C95F00CBFA70 /* MDPageViewController2.m in Sources */,
 				055EBDCD27C4CBD000CBFA70 /* MDTabView.m in Sources */,
+				054305D527EACC7600AF66AD /* MDBaseTableView.m in Sources */,
 				0548521A27C77EFC00BD4F26 /* TestUIPageViewController.m in Sources */,
 				05054ED827BE338B007C4520 /* ViewController.m in Sources */,
 				05054ED227BE338B007C4520 /* AppDelegate.m in Sources */,

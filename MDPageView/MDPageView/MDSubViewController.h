@@ -14,6 +14,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSInteger pageIndex;
 @property (nonatomic, copy) NSString *content;
 @property (nonatomic, strong) UIColor *color;
+@property (nonatomic, assign) BOOL showListView;
+
+@property (nonatomic, copy) void(^childDidScroll)(UIScrollView *scrollView);
+
 
 @end
 

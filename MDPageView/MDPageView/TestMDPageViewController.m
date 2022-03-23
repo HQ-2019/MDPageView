@@ -14,6 +14,7 @@
 
 @property (nonatomic, strong) MDTabView *tabView;
 @property (nonatomic, strong) NSArray *viewControllers;
+@property (nonatomic, strong) MDPageViewController *pageController;
 
 @end
 
@@ -29,9 +30,21 @@
     
     
     MDPageViewController *controller = [MDPageViewController new];
+    controller.view.frame = CGRectMake(0, self.tabView.bounds.size.height, self.view.bounds.size.width, self.view.bounds.size.height - self.tabView.bounds.size.height);
     [self addChildViewController:controller];
     [self.view addSubview:controller.view];
     [controller didMoveToParentViewController:self];
+    self.pageController = controller;
+    
+    
+    UIScrollView *headerView = [UIScrollView new];
+    headerView.backgroundColor = UIColor.orangeColor;
+    headerView.frame = CGRectMake(0, 0, self.view.bounds.size.width, 100);
+    headerView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
+    
+    headerView.pagingEnabled = YES;
+    headerView.contentSize = CGSizeMake(5 * headerView.bounds.size.width, headerView.bounds.size.height);
+    [controller updateHeaderView:headerView];
     
     [controller updateViewControllers:self.viewControllers];
     [controller showPageAtIndex:showIndex animated:NO];
@@ -86,11 +99,16 @@
     if (!_viewControllers) {
         NSArray *colors = @[UIColor.yellowColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor, UIColor.grayColor, UIColor.orangeColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor,UIColor.yellowColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor, UIColor.grayColor, UIColor.orangeColor, UIColor.purpleColor, UIColor.redColor, UIColor.blueColor];
         NSMutableArray *vcList = @[].mutableCopy;
+        __weak typeof(self) weakSelf = self;
         [colors enumerateObjectsUsingBlock:^(UIColor * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
             MDSubViewController *controller = [MDSubViewController new];
             controller.content = [NSString stringWithFormat:@"页面： %@", @(idx)];
             controller.color = obj;
+            controller.showListView = idx % 2 != 0;
             [vcList addObject:controller];
+            controller.childDidScroll = ^(UIScrollView * _Nonnull scrollView) {
+                [weakSelf.pageController childScrolling:scrollView index:idx];
+            };
         }];
         
         _viewControllers = [NSArray arrayWithArray:vcList];

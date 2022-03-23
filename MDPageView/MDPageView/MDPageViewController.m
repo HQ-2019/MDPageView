@@ -7,11 +7,18 @@
 
 
 #import "MDPageViewController.h"
+#import "MDBaseScrollView.h"
 
 @interface MDPageViewController () <UIScrollViewDelegate>
 
+/// 最底层的滚动视图
+@property (nonatomic, strong) MDBaseScrollView *bbScrollView;
+
 /// 底部滚动视图(视图容器)
 @property (nonatomic, strong) UIScrollView *baseScrollView;
+
+/// 设置头视图
+@property (nonatomic, strong) UIView *headerView;
 
 /// 视图控制器列表
 @property (nonatomic, strong) NSArray<UIViewController *> *viewControllers;
@@ -33,6 +40,8 @@
 
 /// 标记容器页面是否完成首次的viewDidDisappear
 @property (nonatomic, assign) BOOL didAppear;
+
+@property (nonatomic, assign) BOOL superscroll;
 
 @end
 
@@ -106,6 +115,22 @@
 }
 
 /// 滚动视图(视图容器)
+- (UIScrollView *)bbScrollView {
+    if (!_bbScrollView) {
+        _bbScrollView = [[MDBaseScrollView alloc] init];
+        _bbScrollView.delegate = self;
+        _bbScrollView.bounces = NO;
+        _bbScrollView.pagingEnabled = YES;
+        _bbScrollView.showsVerticalScrollIndicator = NO;
+        _bbScrollView.showsHorizontalScrollIndicator = NO;
+        _bbScrollView.frame = self.view.bounds;
+        _bbScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self.view addSubview:_bbScrollView];
+    }
+    return _bbScrollView;
+}
+
+/// 滚动视图(视图容器)
 - (UIScrollView *)baseScrollView {
     if (!_baseScrollView) {
         _baseScrollView = [[UIScrollView alloc] init];
@@ -114,9 +139,13 @@
         _baseScrollView.pagingEnabled = YES;
         _baseScrollView.showsVerticalScrollIndicator = NO;
         _baseScrollView.showsHorizontalScrollIndicator = NO;
-        _baseScrollView.frame = self.view.bounds;
+        _baseScrollView.frame = CGRectMake(0, self.headerView.frame.size.height, self.view.bounds.size.width, self.view.bounds.size.height);
         _baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [self.view addSubview:_baseScrollView];
+        if (_bbScrollView) {
+            [_bbScrollView addSubview:_baseScrollView];
+        } else {
+            [self.view addSubview:_baseScrollView];
+        }
     }
     return _baseScrollView;
 }
@@ -140,6 +169,16 @@
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index {
     return index < 0 || index >= self.viewControllers.count ? nil : self.viewControllers[index];
+}
+
+/// 设置更新headerView
+/// @param headerView headerView
+- (void)updateHeaderView:(UIView *)headerView {
+    if (self.headerView != headerView) {
+        self.headerView = headerView;
+        [self.bbScrollView addSubview:self.headerView];
+        
+    }
 }
 
 #pragma mark -
@@ -344,6 +383,14 @@
     if (!CGSizeEqualToSize(size, self.baseScrollView.contentSize)) {
         [self.baseScrollView setContentSize: size];
     }
+    
+    if (self.headerView) {
+        CGFloat height = self.headerView.frame.size.height + self.baseScrollView.frame.size.height;
+        CGSize size1 = CGSizeMake(self.bbScrollView.frame.size.width, height);
+        if (!CGSizeEqualToSize(size1, self.bbScrollView.contentSize)) {
+            [self.bbScrollView setContentSize: size1];
+        }
+    }
 }
 
 /// 更新视图内容位置
@@ -454,7 +501,20 @@
     [[self viewControllerAtIndex:toIndex] endAppearanceTransition];
     [[self viewControllerAtIndex:fromeIndex] endAppearanceTransition];
     !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(toIndex , fromeIndex);
-    
+    self.superscroll = YES;
+    self.bbScrollView.scrollEnabled = YES;
+}
+
+#pragma mark -
+#pragma mark -
+- (void)childScrolling:(UIScrollView *)scrollView index:(NSInteger)index {
+    if (self.superscroll) {
+        scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, 0);
+    } else {
+        if (scrollView.contentOffset.y <= 0) {
+            self.superscroll = YES;
+        }
+    }
 }
 
 #pragma mark -
@@ -465,6 +525,18 @@
 /// isTracking 表示当前滚动是否是跟随手指的滑动
 /// isDecelerating 表示正在减速滚动
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (scrollView == _bbScrollView) {
+        if (!self.superscroll) {
+            self.bbScrollView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height - 40);
+        } else {
+            if (scrollView.contentOffset.y >= self.headerView.bounds.size.height - 40) {
+                self.bbScrollView.contentOffset = CGPointMake(0, self.headerView.bounds.size.height - 40);
+                self.superscroll = NO;
+            }
+        }
+        return;
+    }
+    
 //    NSLog(@"isTracking: %@   isDecelerating: %@   isDragging: %@", @(scrollView.isTracking), @(scrollView.isDecelerating), @(scrollView.isDragging));
     
     // 回调滚动数据
@@ -546,11 +618,17 @@
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 //    NSLog(@"手指拖动 即将开始  ==================== new start");
+    if (scrollView == self.baseScrollView) {
+        _bbScrollView.scrollEnabled = NO;
+    }
 }
 
 /// 手指拖动 结束时
 /// decelerate为YES时列表会惯性滑动， 为NO时列表直接静止
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (scrollView == self.baseScrollView) {
+        _bbScrollView.scrollEnabled = YES;
+    }
     if (!decelerate) {
 //        NSLog(@"手指拖动 结束时 页面直接停止");
         [self scrollViewDidEnd:scrollView];
@@ -578,6 +656,10 @@
 
 /// 列表最终滚动结束时
 - (void)scrollViewDidEnd:(UIScrollView *)scrollView {
+    if (scrollView == _bbScrollView) {
+        return;
+    }
+    
     NSLog(@"scroll end ====================");
     
     if (self.currentPageIndex != self.toPageIndex && self.toPageIndex >= 0) {

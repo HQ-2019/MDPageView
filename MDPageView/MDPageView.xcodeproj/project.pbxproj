@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0500BE5527E88B3D0024F21B /* MDBaseScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */; };
 		05054ED227BE338B007C4520 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED127BE338B007C4520 /* AppDelegate.m */; };
 		05054ED527BE338B007C4520 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED427BE338B007C4520 /* SceneDelegate.m */; };
 		05054ED827BE338B007C4520 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED727BE338B007C4520 /* ViewController.m */; };
@@ -43,6 +44,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDBaseScrollView.h; sourceTree = "<group>"; };
+		0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDBaseScrollView.m; sourceTree = "<group>"; };
 		05054ECD27BE338B007C4520 /* MDPageView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDPageView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05054ED027BE338B007C4520 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		05054ED127BE338B007C4520 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -138,6 +141,8 @@
 				05054F0627BE33D0007C4520 /* MDSubViewController.m */,
 				055EBDCB27C4CBD000CBFA70 /* MDTabView.h */,
 				055EBDCC27C4CBD000CBFA70 /* MDTabView.m */,
+				0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */,
+				0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */,
 				05054ED927BE338B007C4520 /* Main.storyboard */,
 				05054EDC27BE338E007C4520 /* Assets.xcassets */,
 				05054EDE27BE338E007C4520 /* LaunchScreen.storyboard */,
@@ -301,6 +306,7 @@
 				055EBDCD27C4CBD000CBFA70 /* MDTabView.m in Sources */,
 				0548521A27C77EFC00BD4F26 /* TestUIPageViewController.m in Sources */,
 				05054ED827BE338B007C4520 /* ViewController.m in Sources */,
+				0500BE5527E88B3D0024F21B /* MDBaseScrollView.m in Sources */,
 				05054ED227BE338B007C4520 /* AppDelegate.m in Sources */,
 				05054EE327BE338E007C4520 /* main.m in Sources */,
 				05054ED527BE338B007C4520 /* SceneDelegate.m in Sources */,

@@ -64,6 +64,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param animated 是否动画（如果开启动画，则自定义视图动画直线滑动效果）
 - (void)showPageAtIndex:(NSInteger)index animated:(BOOL)animated;
 
+/// 设置更新headerView
+/// @param headerView headerView
+- (void)updateHeaderView:(UIView *)headerView;
+
 /// 获取页面总数
 - (NSInteger)pageCount;
 
@@ -76,6 +80,8 @@ NS_ASSUME_NONNULL_BEGIN
 /// 获取索引对应的视图控制器
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index;
+
+- (void)childScrolling:(UIScrollView *)scrollView index:(NSInteger)index;
 
 @end
 

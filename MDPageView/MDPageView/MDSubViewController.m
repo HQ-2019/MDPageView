@@ -6,6 +6,7 @@
 //
 
 #import "MDSubViewController.h"
+#import "UIViewController+md.h"
 
 @interface MDSubViewController () <UITableViewDelegate, UITableViewDataSource>
 
@@ -45,6 +46,7 @@
             tableView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
         }
         tableView.tableHeaderView = label;
+        self.childScrollView = tableView;
     }
 }
 

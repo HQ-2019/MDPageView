@@ -97,7 +97,6 @@
     if (!_tabView) {
         _tabView = [[MDTabView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 40)];
         _tabView.count = self.viewControllers.count;
-//        [self.view addSubview:_tabView];
     }
     return _tabView;
 }
@@ -114,7 +113,7 @@
             controller.showListView = YES;
             [vcList addObject:controller];
             controller.childDidScroll = ^(UIScrollView * _Nonnull scrollView) {
-                [weakSelf.pageController childScrolling:scrollView index:idx];
+                [weakSelf.pageController childScrollViewDidScroll:scrollView];
             };
         }];
         

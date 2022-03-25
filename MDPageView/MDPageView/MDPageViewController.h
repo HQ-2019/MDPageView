@@ -53,7 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param disappearIndex 完成消失页面的索引
 @property (nonatomic, copy) void(^viewDidChangedCallBack)(NSInteger appearIndex, NSInteger disappearIndex);
 
-/// 设置更新控制器列表
+/// （必须设置）设置更新控制器列表
 /// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；
 /// @param viewControllers 控制器列表
 - (void)updateViewControllers:(nullable NSArray<UIViewController *> *)viewControllers;
@@ -64,11 +64,11 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param animated 是否动画（如果开启动画，则自定义视图动画直线滑动效果）
 - (void)showPageAtIndex:(NSInteger)index animated:(BOOL)animated;
 
-/// 设置更新headerView
+/// 设置headerView
 /// @param headerView headerView
 - (void)updateHeaderView:(UIView *)headerView;
 
-/// 设置更新悬浮headerView
+/// 设置吸附在顶部的视图
 /// @param subHeaderView subHeaderView
 - (void)updateSubHeaderView:(UIView *)subHeaderView;
 
@@ -85,7 +85,10 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index;
 
-- (void)childScrolling:(UIScrollView *)scrollView index:(NSInteger)index;
+/// 接收子页面滚动列表视图的滚动信息
+/// 当设置了headerView或subHeaderView后，子视图滚动需调此方法将子列表传入进行位置移动计算
+/// @param scrollView 子页面滚动列表
+- (void)childScrollViewDidScroll:(UIScrollView *)scrollView;
 
 @end
 

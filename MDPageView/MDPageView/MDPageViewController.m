@@ -49,6 +49,9 @@
 /// 标记容器页面是否完成首次的viewDidDisappear
 @property (nonatomic, assign) BOOL didAppear;
 
+@property (nonatomic, assign) CGPoint bbPoint;
+@property (nonatomic, assign) CGPoint childPoint;
+
 @end
 
 @implementation MDPageViewController
@@ -539,7 +542,12 @@
     [[self viewControllerAtIndex:fromeIndex] endAppearanceTransition];
     !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(toIndex , fromeIndex);
 
+    // 记录当前要展示的子页面的列表及列表当前的内容偏移位置
     self.childScrollView = [self viewControllerAtIndex:toIndex].childScrollView;
+    self.childPoint = self.childScrollView.contentOffset;
+    
+    // 页面切换时记录主列表容器内容偏移位置
+    self.bbPoint = self.bbScrollView.contentOffset;
 }
 
 #pragma mark -
@@ -617,7 +625,7 @@
         // 处理前后反复滑动时子页面生命周期触发缺失的问题（如从1往0滑再往2滑, 速度够快会出现此类问题）
         if (ABS(self.toPageIndex - newToPage) >= 2) {
             
-            NSLog(@"划得太猛，跨页面切换了");
+            NSLog(@"跨页面切换");
             // 视图将要切换
             [self viewWillChange:self.currentPageIndex fromeIndex:self.toPageIndex];
             // 视图完成切换
@@ -698,22 +706,20 @@
 /// 最底层的滚动列表滚动，计算移动位置
 /// @param scrollView 滚动列表
 - (void)bbScrollViewDidScroll:(UIScrollView *)scrollView {
-    if ((self.subHeaderView || self.headerView) && self.bbScrollView.contentOffset.y >= [self headerStopPoint].y) {
-        self.bbScrollView.canScroll = NO;
-        self.bbScrollView.contentOffset = [self headerStopPoint];
-    } else {
+    
+    // 通过手势滑动速率实时判断手势当前的滑动方向
+    CGPoint velocity = [scrollView.panGestureRecognizer velocityInView:scrollView];
+    
+    if (velocity.y > 0) {
+        // 当前手势向下滑，如果子列表内容没有滑到其顶部，则先让其下滑，主容器内容位置偏移保持不变
         if (self.childScrollView.contentOffset.y > 0) {
-            self.bbScrollView.canScroll = NO;
-            if (self.subHeaderView || self.headerView) {
-                if (self.bbScrollView.contentOffset.y > 0) {
-                    self.bbScrollView.contentOffset = [self headerStopPoint];
-                } else {
-                    self.bbScrollView.contentOffset = CGPointZero;
-                }
-            }
-            self.bbScrollView.canScroll = NO;
-        } else {
-            self.bbScrollView.canScroll = YES;
+            self.bbScrollView.contentOffset = self.bbPoint;
+        }
+    } else if (velocity.y < 0) {
+        // 当前手势向上滑, 主容器到达悬浮位置，主容器内容位置偏移保持不变
+        if (((self.subHeaderView || self.headerView) && self.bbScrollView.contentOffset.y >= [self headerStopPoint].y)) {
+            self.bbScrollView.contentOffset = [self headerStopPoint];
+            self.bbPoint = self.bbScrollView.contentOffset;
         }
     }
 }
@@ -722,19 +728,27 @@
 /// 当设置了headerView或subHeaderView后，子视图滚动需调此方法将子列表传入进行位置移动计算
 /// @param scrollView 子页面滚动列表
 - (void)childScrollViewDidScroll:(UIScrollView *)scrollView {
-    if (self.bbScrollView.canScroll) {
-        if (!scrollView.canScroll || (scrollView.canScroll && scrollView.contentOffset.y >= 0)) {
-            scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, 0);
-            scrollView.canScroll = NO;
+    
+    // 通过手势滑动速率实时判断手势当前的滑动方向
+    CGPoint velocity = [scrollView.panGestureRecognizer velocityInView:scrollView];
+    
+    if (velocity.y >= 0) {
+        // 当前手势向下滑，子列表内容下滑不能超过其顶部
+        if (self.childScrollView.contentOffset.y <= 0) {
+            self.childScrollView.contentOffset = CGPointZero;
         }
-    } else {
-        if (scrollView.contentOffset.y <= 0) {
-            self.bbScrollView.canScroll = YES;
-            scrollView.canScroll = NO;
-        } else {
-            scrollView.canScroll = YES;
+    } else if (velocity.y < 0) {
+        // 当前手势向上滑，主容器未到达悬浮位置，子列表内容位置偏移保持不变
+        if (((self.subHeaderView || self.headerView) && self.bbScrollView.contentOffset.y < [self headerStopPoint].y)) {
+            if (self.childPoint.y <= 0) {
+                self.childScrollView.contentOffset = CGPointMake(self.childScrollView.contentOffset.x, 0);
+            } else {
+                self.childScrollView.contentOffset = self.childPoint;
+            }
         }
     }
+    
+    self.childPoint = CGPointMake(self.childScrollView.contentOffset.x, MAX(0, self.childScrollView.contentOffset.y));
 }
 
 /// 计算header悬停的位置

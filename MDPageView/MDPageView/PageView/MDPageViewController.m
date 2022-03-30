@@ -795,7 +795,10 @@
         return;
     }
     
-    self.childScrollView = scrollView;
+    // 滚动视图为当前子控制页面的子视图时记录(避免上个页面滚动中，子页面控制器被切换了，self.childScrollView记录的将会是上个页面的)
+    if (scrollView == [self currentViewController].childScrollView) {
+        self.childScrollView = scrollView;
+    }
     
     // 通过手势滑动速率实时判断手势当前的滑动方向
     CGPoint velocity = [self.childScrollView.panGestureRecognizer velocityInView:self.childScrollView];

@@ -7,26 +7,24 @@
 
 
 #import "MDPageViewController.h"
-#import "MDBaseScrollView.h"
-#import "UIScrollView+md.h"
 #import "UIViewController+md.h"
 
 @interface MDPageViewController () <UIScrollViewDelegate>
 
-/// 最底层的滚动视图
-@property (nonatomic, strong) MDBaseScrollView *bbScrollView;
+/// 上下滑动的滚动容器视图，即最底层的滚动容器视图
+@property (nonatomic, strong) MDBaseScrollView *baseScrollView;
 
-/// 底部滚动视图(视图容器)
-@property (nonatomic, strong) UIScrollView *baseScrollView;
+/// 左右滑动的页面滚动容器视图
+@property (nonatomic, strong) UIScrollView *pageScrollView;
 
 /// 当前展示的子页面上的列表视图
-@property (nonatomic, strong) UIScrollView *childScrollView;
+@property (nonatomic, strong, nullable) UIScrollView *childScrollView;
 
 /// 头视图
-@property (nonatomic, strong) UIView *headerView;
+@property (nonatomic, strong, nullable) UIView *headerView;
 
-/// 悬浮头视图
-@property (nonatomic, strong) UIView *subHeaderView;
+/// 悬浮头视图，即向上滑动列表是吸附在最顶部的头视图
+@property (nonatomic, strong, nullable) UIView *subHeaderView;
 
 /// 视图控制器列表
 @property (nonatomic, strong) NSArray<UIViewController *> *viewControllers;
@@ -49,8 +47,14 @@
 /// 标记容器页面是否完成首次的viewDidDisappear
 @property (nonatomic, assign) BOOL didAppear;
 
-@property (nonatomic, assign) CGPoint bbPoint;
-@property (nonatomic, assign) CGPoint childPoint;
+/// 切换页面或上下滚动时记录底部滚动容器内容偏移的位置
+@property (nonatomic, assign) CGPoint baseScrollViewOffset;
+
+/// 切换页面或上下滚动时记录子页面列表内容偏移的位置
+@property (nonatomic, assign) CGPoint childScrollViewOffset;
+
+/// 记录底部滚动容器上一次滑动速率不等于0时的速率，用于当前速率等于0时区分出当前视图的滚动方向，即使用上一次的速率来判断
+@property (nonatomic, assign) CGPoint baseScrollViewVelocity;
 
 @end
 
@@ -69,7 +73,7 @@
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:YES animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(self.currentPageIndex , -1);
+        !self.childViewWillChanged ?: self.childViewWillChanged(self.currentPageIndex , -1);
     }
 }
 
@@ -78,7 +82,7 @@
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(self.currentPageIndex , -1);
+        !self.childViewDidChanged ?: self.childViewDidChanged(self.currentPageIndex , -1);
     }
     
     self.didAppear = YES;
@@ -89,7 +93,7 @@
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] beginAppearanceTransition:NO animated:YES];
-        !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(-1 , self.currentPageIndex);
+        !self.childViewWillChanged ?: self.childViewWillChanged(-1 , self.currentPageIndex);
     }
 }
 
@@ -98,7 +102,7 @@
     
     if (self.didAppear) {
         [[self viewControllerAtIndex:self.currentPageIndex] endAppearanceTransition];
-        !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(-1 , self.currentPageIndex);
+        !self.childViewDidChanged ?: self.childViewDidChanged(-1 , self.currentPageIndex);
     }
 }
 
@@ -106,9 +110,9 @@
     [super viewDidLayoutSubviews];
     
     if (self.subHeaderView) {
-        CGRect rect = self.baseScrollView.frame;
+        CGRect rect = self.pageScrollView.frame;
         rect.size.height = rect.size.height - self.subHeaderView.bounds.size.height;
-        self.baseScrollView.frame = rect;
+        self.pageScrollView.frame = rect;
     }
     
     // 更新列表容器
@@ -130,42 +134,41 @@
 }
 
 /// 滚动视图(视图容器)
-- (UIScrollView *)bbScrollView {
-    if (!_bbScrollView) {
-        _bbScrollView = [[MDBaseScrollView alloc] init];
-        _bbScrollView.delegate = self;
-        //_bbScrollView.bounces = NO;
-        //_bbScrollView.pagingEnabled = YES;
-        _bbScrollView.showsVerticalScrollIndicator = NO;
-        _bbScrollView.showsHorizontalScrollIndicator = NO;
-        _bbScrollView.frame = self.view.bounds;
-        _bbScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [self.view addSubview:_bbScrollView];
-        if (@available(iOS 11.0, *)) {
-            _bbScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
-        }
-
-    }
-    return _bbScrollView;
-}
-
-/// 滚动视图(视图容器)
-- (UIScrollView *)baseScrollView {
+- (MDBaseScrollView *)baseScrollView {
     if (!_baseScrollView) {
-        _baseScrollView = [[UIScrollView alloc] init];
+        _baseScrollView = [[MDBaseScrollView alloc] init];
         _baseScrollView.delegate = self;
-        _baseScrollView.bounces = NO;
-        _baseScrollView.pagingEnabled = YES;
+        _baseScrollView.bounces = YES;
         _baseScrollView.showsVerticalScrollIndicator = NO;
         _baseScrollView.showsHorizontalScrollIndicator = NO;
-        _baseScrollView.frame = CGRectMake(0, self.headerView.frame.size.height + self.subHeaderView.frame.size.height, self.view.bounds.size.width, self.view.bounds.size.height);
+        _baseScrollView.frame = self.view.bounds;
         _baseScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-        [self.bbScrollView addSubview:_baseScrollView];
+        [self.view addSubview:_baseScrollView];
         if (@available(iOS 11.0, *)) {
             _baseScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
         }
     }
+    
     return _baseScrollView;
+}
+
+/// 滚动视图(视图容器)
+- (UIScrollView *)pageScrollView {
+    if (!_pageScrollView) {
+        _pageScrollView = [[UIScrollView alloc] init];
+        _pageScrollView.delegate = self;
+        _pageScrollView.bounces = NO;
+        _pageScrollView.pagingEnabled = YES;
+        _pageScrollView.showsVerticalScrollIndicator = NO;
+        _pageScrollView.showsHorizontalScrollIndicator = NO;
+        _pageScrollView.frame = CGRectMake(0, self.headerView.frame.size.height + self.subHeaderView.frame.size.height, self.view.bounds.size.width, self.view.bounds.size.height);
+        _pageScrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [self.baseScrollView addSubview:_pageScrollView];
+        if (@available(iOS 11.0, *)) {
+            _pageScrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+        }
+    }
+    return _pageScrollView;
 }
 
 /// 当前显示视图的索引
@@ -198,7 +201,7 @@
         }
         
         self.headerView = headerView;
-        [self.bbScrollView addSubview:self.headerView];
+        [self.baseScrollView addSubview:self.headerView];
     }
 }
 
@@ -214,7 +217,7 @@
         CGRect rect = subHeaderView.bounds;
         rect.origin.y = self.headerView.bounds.size.height;
         self.subHeaderView.frame = rect;
-        [self.bbScrollView addSubview:self.subHeaderView];
+        [self.baseScrollView addSubview:self.subHeaderView];
     }
 }
 
@@ -223,6 +226,7 @@
 
 /// （必须设置）设置更新控制器列表
 /// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；
+/// 如何要设置headerView或者subHeaderView，那么初始viewControllers中的ViewController后需要记录其的列表到self.childScrollView上，并且子列表滚动时将其滚动事件回调到本组件中
 /// @param viewControllers 控制器列表
 - (void)updateViewControllers:(nullable NSArray<UIViewController *> *)viewControllers {
     
@@ -308,7 +312,7 @@
     // ********************** 启用动画切换
     
     // 页面视图的size
-    CGSize pageSize = self.baseScrollView.frame.size;
+    CGSize pageSize = self.pageScrollView.frame.size;
     
     // 动画页面
     UIView *oldView = [self viewControllerAtIndex:oldPageIndex].view;
@@ -323,7 +327,7 @@
         // 视图完成切换
         [self viewDidChange:self.lastPageIndex fromeIndex:oldPageIndex];
         
-        UIView *tmepView = [self viewControllerAtIndex:self.baseScrollView.contentOffset.x / pageSize.width].view;
+        UIView *tmepView = [self viewControllerAtIndex:self.pageScrollView.contentOffset.x / pageSize.width].view;
         if (tmepView != currentView && tmepView != lastView) {
             backgroundView = tmepView;
             [UIView animateWithDuration:2 animations:^{
@@ -336,7 +340,7 @@
     scrollBeginAnimation();
     
     // 移除当前在执行的动画（用户可能在快速点击切换）
-    [self.baseScrollView.layer removeAllAnimations];
+    [self.pageScrollView.layer removeAllAnimations];
     [oldView.layer removeAllAnimations];
     [lastView.layer removeAllAnimations];
     [currentView.layer removeAllAnimations];
@@ -345,8 +349,8 @@
     [self moveBackToOriginPositionIfNeeded:oldView index:oldPageIndex];
     
     // 将执行动画的视图层级提到前面，避免遮挡
-    [self.baseScrollView bringSubviewToFront:lastView];
-    [self.baseScrollView bringSubviewToFront:currentView];
+    [self.pageScrollView bringSubviewToFront:lastView];
+    [self.pageScrollView bringSubviewToFront:currentView];
     
     // 计算执行动画的视图的开始,移动目标和结束时的位置
     CGPoint lastView_StartOrigin = lastView.frame.origin;
@@ -394,15 +398,15 @@
 /// 计算索引对应视图的frame
 /// @param index 视图索引
 - (CGRect)calcChildViewFrameWithIndex:(NSInteger)index {
-    CGFloat x = index * (CGFloat)self.baseScrollView.frame.size.width;
-    return CGRectMake(x, 0, self.baseScrollView.bounds.size.width, self.baseScrollView.bounds.size.height);
+    CGFloat x = index * (CGFloat)self.pageScrollView.frame.size.width;
+    return CGRectMake(x, 0, self.pageScrollView.bounds.size.width, self.pageScrollView.bounds.size.height);
 }
 
 /// 计算索引对应的offSet
 /// @param index 视图索引
 - (CGPoint)calcOffsetWithIndex:(NSInteger)index {
-    CGFloat width = (CGFloat)self.baseScrollView.frame.size.width;
-    CGFloat maxWidth = (CGFloat)self.baseScrollView.contentSize.width;
+    CGFloat width = (CGFloat)self.pageScrollView.frame.size.width;
+    CGFloat maxWidth = (CGFloat)self.pageScrollView.contentSize.width;
     CGFloat offsetX = MAX(0, index * width);
     
     if (maxWidth > 0.0 && offsetX > maxWidth - width) {
@@ -414,21 +418,21 @@
 
 /// 更新滚动视图内容size
 - (void)updateScrollViewContentSize {
-    CGFloat width = MAX(self.baseScrollView.bounds.size.width, self.pageCount * self.baseScrollView.bounds.size.width);
+    CGFloat width = MAX(self.pageScrollView.bounds.size.width, self.pageCount * self.pageScrollView.bounds.size.width);
     CGSize size = CGSizeMake(width, 0);
     
-    if (!CGSizeEqualToSize(size, self.baseScrollView.contentSize)) {
-        [self.baseScrollView setContentSize: size];
+    if (!CGSizeEqualToSize(size, self.pageScrollView.contentSize)) {
+        [self.pageScrollView setContentSize: size];
     }
     
     if (self.headerView || self.subHeaderView) {
-        CGFloat height = self.headerView.frame.size.height + self.subHeaderView.frame.size.height + self.baseScrollView.frame.size.height;
-        if (height <= self.bbScrollView.bounds.size.height) {
-            height = self.bbScrollView.bounds.size.height + 1;
+        CGFloat height = self.headerView.frame.size.height + self.subHeaderView.frame.size.height + self.pageScrollView.frame.size.height;
+        if (height <= self.baseScrollView.bounds.size.height) {
+            height = self.baseScrollView.bounds.size.height + 1;
         }
         CGSize size1 = CGSizeMake(0, height);
-        if (!CGSizeEqualToSize(size1, self.bbScrollView.contentSize)) {
-            [self.bbScrollView setContentSize: size1];
+        if (!CGSizeEqualToSize(size1, self.baseScrollView.contentSize)) {
+            [self.baseScrollView setContentSize: size1];
         }
     }
 }
@@ -436,10 +440,10 @@
 /// 更新视图内容位置
 /// @param animations 是否开始动画
 - (void)updateScrollViewContentOffset:(BOOL)animations {
-    CGFloat x = MAX(self.currentPageIndex * self.baseScrollView.bounds.size.width, 0);
+    CGFloat x = MAX(self.currentPageIndex * self.pageScrollView.bounds.size.width, 0);
     CGPoint offset = CGPointMake(x, 0);
-    if (!CGPointEqualToPoint(offset, self.baseScrollView.contentOffset)) {
-        [self.baseScrollView setContentOffset:offset animated:animations];
+    if (!CGPointEqualToPoint(offset, self.pageScrollView.contentOffset)) {
+        [self.pageScrollView setContentOffset:offset animated:animations];
     }
 }
 
@@ -464,8 +468,8 @@
     
     controller.view.frame = [self calcChildViewFrameWithIndex:index];
     controller.view.hidden = NO;
-    if (![self.baseScrollView.subviews containsObject:controller.view]) {
-        [self.baseScrollView addSubview:controller.view];
+    if (![self.pageScrollView.subviews containsObject:controller.view]) {
+        [self.pageScrollView addSubview:controller.view];
     }
     
     if (!isContainsVC) {
@@ -531,7 +535,7 @@
 - (void)viewWillChange:(NSInteger)toIndex fromeIndex:(NSInteger)fromeIndex {
     [[self viewControllerAtIndex:toIndex] beginAppearanceTransition:YES animated:YES];
     [[self viewControllerAtIndex:fromeIndex] beginAppearanceTransition:NO animated:YES];
-    !self.viewWillChangedCallBack ?: self.viewWillChangedCallBack(toIndex , fromeIndex);
+    !self.childViewWillChanged ?: self.childViewWillChanged(toIndex , fromeIndex);
 }
 
 /// 页面完成切换
@@ -540,14 +544,10 @@
 - (void)viewDidChange:(NSInteger)toIndex fromeIndex:(NSInteger)fromeIndex {
     [[self viewControllerAtIndex:toIndex] endAppearanceTransition];
     [[self viewControllerAtIndex:fromeIndex] endAppearanceTransition];
-    !self.viewDidChangedCallBack ?: self.viewDidChangedCallBack(toIndex , fromeIndex);
-
-    // 记录当前要展示的子页面的列表及列表当前的内容偏移位置
-    self.childScrollView = [self viewControllerAtIndex:toIndex].childScrollView;
-    self.childPoint = self.childScrollView.contentOffset;
+    !self.childViewDidChanged ?: self.childViewDidChanged(toIndex , fromeIndex);
     
-    // 页面切换时记录主列表容器内容偏移位置
-    self.bbPoint = self.bbScrollView.contentOffset;
+    // 页面切换完成后记录子页面列表和主容器列表内容偏移相关信息
+    [self childViewDidChangedToIndex:toIndex];
 }
 
 #pragma mark -
@@ -558,19 +558,19 @@
 /// isTracking 表示当前滚动是否是跟随手指的滑动
 /// isDecelerating 表示正在减速滚动
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
-    if (scrollView == self.bbScrollView) {
-        [self bbScrollViewDidScroll:scrollView];
+    if (scrollView == self.baseScrollView) {
+        [self baseScrollViewDidScroll];
         return;
     }
     
-    if (scrollView != self.baseScrollView) {
+    if (scrollView != self.pageScrollView) {
         return;
     }
     
-//    NSLog(@"isTracking: %@   isDecelerating: %@   isDragging: %@", @(scrollView.isTracking), @(scrollView.isDecelerating), @(scrollView.isDragging));
+    //    NSLog(@"isTracking: %@   isDecelerating: %@   isDragging: %@", @(scrollView.isTracking), @(scrollView.isDecelerating), @(scrollView.isDragging));
     
     // 回调滚动数据
-    !self.viewScrollCallBack ?: self.viewScrollCallBack(scrollView.contentOffset, scrollView.contentSize, scrollView.isDragging);
+    !self.pageScrollViewDidScrolling ?: self.pageScrollViewDidScrolling(scrollView.contentOffset, scrollView.contentSize, scrollView.isDragging);
     
     // 忽略由[setContentOffset:animated:]等非手势滑动引起的滚动
     if (!scrollView.isDragging && !scrollView.isTracking && !scrollView.isDecelerating) {
@@ -647,40 +647,50 @@
 
 /// 手指拖动 即将开始
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-//    NSLog(@"手指拖动 即将开始  ==================== new start");
+    //    NSLog(@"手指拖动 即将开始  ==================== new start");
 }
 
 /// 手指拖动 结束时
 /// decelerate为YES时列表会惯性滑动， 为NO时列表直接静止
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate {
+    if (scrollView != self.pageScrollView) {
+        return;
+    }
+    
     if (!decelerate) {
-//        NSLog(@"手指拖动 结束时 页面直接停止");
+        //        NSLog(@"手指拖动 结束时 页面直接停止");
         [self scrollViewDidEnd:scrollView];
     } else {
-//        NSLog(@"手指拖动 结束时 页面继续减速滑动");
+        //        NSLog(@"手指拖动 结束时 页面继续减速滑动");
     }
 }
 
 /// 自动滚动结束时,即调用setContentOffset/scrollRectVisible:animated:等函数并且animated为YES时引发的滑动
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView {
-//    NSLog(@"方法调用引起的滑动 结束");
+    //    NSLog(@"方法调用引起的滑动 结束");
+    if (scrollView != self.pageScrollView) {
+        return;
+    }
     [self scrollViewDidEnd:scrollView];
 }
 
 /// 手指拖动引起的滚动开始时
 - (void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView {
-//    NSLog(@"手指拖动 离开时 滑动开始减速 isDecelerating: %@", @(scrollView.isDecelerating));
+    //    NSLog(@"手指拖动 离开时 滑动开始减速 isDecelerating: %@", @(scrollView.isDecelerating));
 }
 
 /// 手指拖动引起的滚动结束时
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
     //    NSLog(@"手指拖动 离开后 引起的滑动结束 isDecelerating: %@", @(scrollView.isDecelerating));
+    if (scrollView != self.pageScrollView) {
+        return;
+    }
     [self scrollViewDidEnd:scrollView];
 }
 
 /// 列表最终滚动结束时
 - (void)scrollViewDidEnd:(UIScrollView *)scrollView {
-    if (scrollView != self.baseScrollView) {
+    if (scrollView != self.pageScrollView) {
         return;
     }
     
@@ -696,41 +706,70 @@
         
         self.currentPageIndex = self.toPageIndex;
     }
-
+    
     self.toPageIndex = -1;
 }
 
 #pragma mark -
 #pragma mark - 主容器列表与子页面列表上下联动逻辑处理
 
-/// 最底层的滚动列表滚动，计算移动位置
-/// @param scrollView 滚动列表
-- (void)bbScrollViewDidScroll:(UIScrollView *)scrollView {
+/// 子页面完成切换时，记录子页面列表和主容器列表内容偏移相关信息
+/// @param toIndex 显示子页面对应的索引
+- (void)childViewDidChangedToIndex:(NSInteger)toIndex {
+    // 记录当前要展示的子页面的列表及列表当前的内容偏移位置
+    self.childScrollView = [self viewControllerAtIndex:toIndex].childScrollView;
+    self.childScrollViewOffset = self.childScrollView.contentOffset;
     
-    // 通过手势滑动速率实时判断手势当前的滑动方向
-    CGPoint velocity = [scrollView.panGestureRecognizer velocityInView:scrollView];
-    
-    if (velocity.y > 0) {
-        // 当前手势向下滑，如果子列表内容没有滑到其顶部，则先让其下滑，主容器内容位置偏移保持不变
-        if (self.childScrollView.contentOffset.y > 0) {
-            self.bbScrollView.contentOffset = self.bbPoint;
-        }
-    } else if (velocity.y < 0) {
-        // 当前手势向上滑, 主容器到达悬浮位置，主容器内容位置偏移保持不变
-        if (((self.subHeaderView || self.headerView) && self.bbScrollView.contentOffset.y >= [self headerStopPoint].y)) {
-            self.bbScrollView.contentOffset = [self headerStopPoint];
-            self.bbPoint = self.bbScrollView.contentOffset;
-        }
-    }
+    // 页面切换时记录主列表容器内容偏移位置
+    self.baseScrollViewOffset = self.baseScrollView.contentOffset;
+    self.baseScrollViewVelocity = CGPointZero;
 }
 
-/// 接收子页面滚动列表视图的滚动信息
+/// 最底层的滚动列表滚动，计算移动位置
+- (void)baseScrollViewDidScroll {
+    
+    // 没有headerView时，baseScrollView不应该设置下拉刷新，也不允许滑动
+    if (![self haveHeaderView]) {
+        self.baseScrollView.contentOffset = CGPointZero;
+        return;
+    }
+    
+    // 通过手势滑动速率实时判断手势当前的滑动方向
+    CGPoint velocity = [self.baseScrollView.panGestureRecognizer velocityInView:self.baseScrollView];
+    
+    if (velocity.y > 0 || (velocity.y == 0 && self.baseScrollViewOffset.y > 0)) {
+        // 当前手势向下滑，如果子列表内容没有滑到其顶部，则先让其下滑，主容器内容位置偏移保持不变
+        if (self.childScrollView && self.childScrollView.contentOffset.y > 0) {
+            self.baseScrollView.contentOffset = self.baseScrollViewOffset;
+        }
+    } else if (velocity.y < 0 || (velocity.y == 0 && self.baseScrollViewOffset.y < 0)) {
+        // 当前手势向上滑, 主容器到达悬浮位置，主容器内容位置偏移保持不变
+        if ([self haveHeaderView] && self.baseScrollView.contentOffset.y >= [self headerStopPoint].y) {
+            self.baseScrollView.contentOffset = [self headerStopPoint];
+        }
+    }
+    self.baseScrollViewOffset = self.baseScrollView.contentOffset;
+    
+    if (velocity.y != 0) {
+        self.baseScrollViewVelocity = velocity;
+    }
+    
+    !self.baseScrollViewDidScrolling ?: self.baseScrollViewDidScrolling(self.baseScrollView);
+}
+
+/// 接收子页面控制器中滚动列表视图的滚动信息
 /// 当设置了headerView或subHeaderView后，子视图滚动需调此方法将子列表传入进行位置移动计算
 /// @param scrollView 子页面滚动列表
 - (void)childScrollViewDidScroll:(UIScrollView *)scrollView {
+    // 没有headerView时，不限制子页面列表的滚动
+    if (![self haveHeaderView]) {
+        return;
+    }
+    
+    self.childScrollView = scrollView;
     
     // 通过手势滑动速率实时判断手势当前的滑动方向
-    CGPoint velocity = [scrollView.panGestureRecognizer velocityInView:scrollView];
+    CGPoint velocity = [self.childScrollView.panGestureRecognizer velocityInView:self.childScrollView];
     
     if (velocity.y >= 0) {
         // 当前手势向下滑，子列表内容下滑不能超过其顶部
@@ -739,16 +778,16 @@
         }
     } else if (velocity.y < 0) {
         // 当前手势向上滑，主容器未到达悬浮位置，子列表内容位置偏移保持不变
-        if (((self.subHeaderView || self.headerView) && self.bbScrollView.contentOffset.y < [self headerStopPoint].y)) {
-            if (self.childPoint.y <= 0) {
+        if ([self haveHeaderView] && self.baseScrollView.contentOffset.y < [self headerStopPoint].y) {
+            if (self.childScrollViewOffset.y <= 0) {
                 self.childScrollView.contentOffset = CGPointMake(self.childScrollView.contentOffset.x, 0);
             } else {
-                self.childScrollView.contentOffset = self.childPoint;
+                self.childScrollView.contentOffset = self.childScrollViewOffset;
             }
         }
     }
     
-    self.childPoint = CGPointMake(self.childScrollView.contentOffset.x, MAX(0, self.childScrollView.contentOffset.y));
+    self.childScrollViewOffset = CGPointMake(self.childScrollView.contentOffset.x, MAX(0, self.childScrollView.contentOffset.y));
 }
 
 /// 计算header悬停的位置
@@ -759,6 +798,11 @@
         return CGPointMake(0, self.headerView.frame.size.height);
     }
     return CGPointZero;
+}
+
+/// 是否有头视图
+- (BOOL)haveHeaderView {
+    return self.headerView || self.subHeaderView;
 }
 
 @end

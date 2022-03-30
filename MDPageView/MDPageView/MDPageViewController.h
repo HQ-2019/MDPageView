@@ -6,6 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MDBaseScrollView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -21,13 +22,13 @@ NS_ASSUME_NONNULL_BEGIN
 ///  [self.view addSubview:controller.view];
 ///  [controller didMoveToParentViewController:self];
 ///
-///  controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
+///  controller.pageScrollViewDidScrolling = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
 ///     NSLog(@"offset: %@  isDragging: %@", @(contentOffset.x), @(isDragging));
 ///  };
-///  controller.viewWillChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+///  controller.childViewWillChanged = ^(NSInteger appearIndex, NSInteger disappearIndex) {
 ///     NSLog(@"页面将要切换  %@ -> %@", @(disappearIndex), @(appearIndex));
 ///  };
-///  controller.viewDidChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+///  controller.childViewDidChanged = ^(NSInteger appearIndex, NSInteger disappearIndex) {
 ///     NSLog(@"页面切换完成  %@ -> %@", @(disappearIndex), @(appearIndex));
 ///  };
 ///
@@ -37,24 +38,32 @@ NS_ASSUME_NONNULL_BEGIN
 ///
 @interface MDPageViewController : UIViewController
 
-/// 视图滚动时回调相关数据
+/// 上下滑动的滚动容器视图，即最底层的滚动容器视图
+@property (nonatomic, strong, readonly) MDBaseScrollView *baseScrollView;
+
+/// 上下滑动的滚动容器视图滚动时回调
+/// @param scrollView 滚动视图
+@property (nonatomic, copy) void(^baseScrollViewDidScrolling)(MDBaseScrollView *scrollView);
+
+/// 左右滑动的页面滚动容器视图滚动时回
 /// @param contentOffset 滚动视图位置偏移信息
 /// @param contentSize 滚动视图内容size
 /// @param isDragging 是否是手指拖动 YES-是
-@property (nonatomic, copy) void(^viewScrollCallBack)(CGPoint contentOffset, CGSize contentSize, BOOL isDragging);
+@property (nonatomic, copy) void(^pageScrollViewDidScrolling)(CGPoint contentOffset, CGSize contentSize, BOOL isDragging);
 
 /// 子页面切换完成回调
 /// @param appearIndex 将要显示页面索引
 /// @param disappearIndex 将要消失页面的索引
-@property (nonatomic, copy) void(^viewWillChangedCallBack)(NSInteger appearIndex, NSInteger disappearIndex);
+@property (nonatomic, copy) void(^childViewWillChanged)(NSInteger appearIndex, NSInteger disappearIndex);
 
 /// 子页面切换完成回调
 /// @param appearIndex 完成显示页面索引
 /// @param disappearIndex 完成消失页面的索引
-@property (nonatomic, copy) void(^viewDidChangedCallBack)(NSInteger appearIndex, NSInteger disappearIndex);
+@property (nonatomic, copy) void(^childViewDidChanged)(NSInteger appearIndex, NSInteger disappearIndex);
 
 /// （必须设置）设置更新控制器列表
 /// 如果是重置，当发现原控制器无法释放时，检查传入的viewControllers是否被外部持有，如果是先执行viewControllers = nil或者viewControllers = newViewControllers；
+/// 如何要设置headerView或者subHeaderView，那么初始viewControllers中的ViewController后需要记录其的列表到self.childScrollView上，并且子列表滚动时将其滚动事件回调到本组件中
 /// @param viewControllers 控制器列表
 - (void)updateViewControllers:(nullable NSArray<UIViewController *> *)viewControllers;
 
@@ -85,7 +94,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param index 索引
 - (nullable UIViewController *)viewControllerAtIndex:(NSInteger)index;
 
-/// 接收子页面滚动列表视图的滚动信息
+/// 接收子页面控制器中滚动列表视图的滚动信息
 /// 当设置了headerView或subHeaderView后，子视图滚动需调此方法将子列表传入进行位置移动计算
 /// @param scrollView 子页面滚动列表
 - (void)childScrollViewDidScroll:(UIScrollView *)scrollView;

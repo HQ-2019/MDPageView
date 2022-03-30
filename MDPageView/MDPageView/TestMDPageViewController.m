@@ -25,10 +25,10 @@
     [super viewDidLoad];
     
     self.title = @"MDPageViewController";
+    self.view.backgroundColor = UIColor.whiteColor;
     
     __weak typeof(self) weakSelf = self;
     NSInteger showIndex = 1;
-    
     
     MDPageViewController *controller = [MDPageViewController new];
     [self addChildViewController:controller];
@@ -42,14 +42,24 @@
     
     [controller showPageAtIndex:showIndex animated:NO];
     
-    controller.viewScrollCallBack = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
+    // 底部容器上下滚动
+    controller.baseScrollViewDidScrolling = ^(MDBaseScrollView * _Nonnull scrollView) {
+        
+    };
+    
+    // 分页容器左右滚动
+    controller.pageScrollViewDidScrolling = ^(CGPoint contentOffset, CGSize contentSize, BOOL isDragging) {
         //        NSLog(@"Offset: %@    isDragging: %@", @(contentOffset.x), @(isDragging));
     };
-    controller.viewWillChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+    
+    // 子页面视图将要切换
+    controller.childViewWillChanged = ^(NSInteger appearIndex, NSInteger disappearIndex) {
         //        NSLog(@"----------------------------------   页面将要切换  %@ -> %@", @(fromIndex), @(toIndex));
         [weakSelf.tabView showAtIndex:appearIndex];
     };
-    controller.viewDidChangedCallBack = ^(NSInteger appearIndex, NSInteger disappearIndex) {
+    
+    // 子页面视图完成切换
+    controller.childViewDidChanged = ^(NSInteger appearIndex, NSInteger disappearIndex) {
         NSLog(@"==================================   页面切换完成  %@ -> %@ \n", @(disappearIndex), @(appearIndex));
         [weakSelf.tabView showAtIndex:appearIndex];
     };
@@ -75,7 +85,7 @@
     
     [self.tabView showAtIndex:showIndex];
     self.tabView.clickIndexBlock = ^(NSInteger index) {
-        [controller showPageAtIndex:index animated:YES];
+        [weakSelf.pageController showPageAtIndex:index animated:YES];
     };
 }
 
@@ -110,7 +120,7 @@
             MDSubViewController *controller = [MDSubViewController new];
             controller.content = [NSString stringWithFormat:@"页面： %@", @(idx)];
             controller.color = obj;
-            controller.showListView = YES;
+            controller.showListView = idx % 2 != 0;
             [vcList addObject:controller];
             controller.childDidScroll = ^(UIScrollView * _Nonnull scrollView) {
                 [weakSelf.pageController childScrollViewDidScroll:scrollView];

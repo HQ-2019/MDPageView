@@ -63,7 +63,7 @@
     }];
     
     // 底部容器上下滚动
-    controller.baseScrollViewDidScrolling = ^(MDBaseScrollView * _Nonnull scrollView) {
+    controller.baseScrollViewDidScrolling = ^(MDPageBaseScrollView * _Nonnull scrollView) {
         
     };
     
@@ -99,7 +99,7 @@
 //        self.viewControllers = vcList;
 //        [controller updateViewControllers:vcList];
 //        [controller showPageAtIndex:2 animated:NO];
-//        
+//
 //        self.tabView.count = self.viewControllers.count;
 //    });
     

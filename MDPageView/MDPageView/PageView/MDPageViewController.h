@@ -6,7 +6,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MDBaseScrollView.h"
+#import "MDPageBaseScrollView.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -40,11 +40,11 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MDPageViewController : UIViewController
 
 /// 上下滑动的滚动容器视图，即最底层的滚动容器视图
-@property (nonatomic, strong, readonly) MDBaseScrollView *baseScrollView;
+@property (nonatomic, strong, readonly) MDPageBaseScrollView *baseScrollView;
 
 /// 上下滑动的滚动容器视图滚动时回调
 /// @param scrollView 滚动视图
-@property (nonatomic, copy) void(^baseScrollViewDidScrolling)(MDBaseScrollView *scrollView);
+@property (nonatomic, copy) void(^baseScrollViewDidScrolling)(MDPageBaseScrollView *scrollView);
 
 /// 左右滑动的页面滚动容器视图滚动时回
 /// @param contentOffset 滚动视图位置偏移信息

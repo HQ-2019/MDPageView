@@ -1,5 +1,5 @@
 //
-//  MDBaseScrollView.h
+//  MDPageBaseScrollView.h
 //  MDPageView
 //
 //  Created by hq on 2022/3/21.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface MDBaseScrollView : UIScrollView
+@interface MDPageBaseScrollView : UIScrollView
 
 @end
 

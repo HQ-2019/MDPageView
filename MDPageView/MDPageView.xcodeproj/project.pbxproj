@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0500BE5527E88B3D0024F21B /* MDBaseScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */; };
+		0500BE5527E88B3D0024F21B /* MDPageBaseScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0500BE5427E88B3D0024F21B /* MDPageBaseScrollView.m */; };
 		05054ED227BE338B007C4520 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED127BE338B007C4520 /* AppDelegate.m */; };
 		05054ED527BE338B007C4520 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED427BE338B007C4520 /* SceneDelegate.m */; };
 		05054ED827BE338B007C4520 /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05054ED727BE338B007C4520 /* ViewController.m */; };
@@ -65,8 +65,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDBaseScrollView.h; sourceTree = "<group>"; };
-		0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDBaseScrollView.m; sourceTree = "<group>"; };
+		0500BE5327E88B3D0024F21B /* MDPageBaseScrollView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDPageBaseScrollView.h; sourceTree = "<group>"; };
+		0500BE5427E88B3D0024F21B /* MDPageBaseScrollView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDPageBaseScrollView.m; sourceTree = "<group>"; };
 		05054ECD27BE338B007C4520 /* MDPageView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDPageView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05054ED027BE338B007C4520 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		05054ED127BE338B007C4520 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -234,8 +234,8 @@
 			children = (
 				055EAA2227BF77360051B7C6 /* MDPageViewController.h */,
 				055EAA2327BF77360051B7C6 /* MDPageViewController.m */,
-				0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */,
-				0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */,
+				0500BE5327E88B3D0024F21B /* MDPageBaseScrollView.h */,
+				0500BE5427E88B3D0024F21B /* MDPageBaseScrollView.m */,
 				0551F84F27EDAB0100932775 /* UIViewController+MDPageView.h */,
 				0551F85027EDAB0100932775 /* UIViewController+MDPageView.m */,
 			);
@@ -492,7 +492,7 @@
 				05F8561F27F4406E00A494AC /* MJRefreshNormalHeader.m in Sources */,
 				0548521A27C77EFC00BD4F26 /* TestUIPageViewController.m in Sources */,
 				05054ED827BE338B007C4520 /* ViewController.m in Sources */,
-				0500BE5527E88B3D0024F21B /* MDBaseScrollView.m in Sources */,
+				0500BE5527E88B3D0024F21B /* MDPageBaseScrollView.m in Sources */,
 				05F8562327F4406E00A494AC /* MJRefreshHeader.m in Sources */,
 				05F8562427F4406E00A494AC /* MJRefreshBackFooter.m in Sources */,
 				05F8561A27F4406E00A494AC /* MJRefreshBackStateFooter.m in Sources */,

@@ -12,7 +12,7 @@
 @interface MDPageViewController () <UIScrollViewDelegate>
 
 /// 上下滑动的滚动容器视图，即最底层的滚动容器视图
-@property (nonatomic, strong) MDBaseScrollView *baseScrollView;
+@property (nonatomic, strong) MDPageBaseScrollView *baseScrollView;
 
 /// 左右滑动的页面滚动容器视图
 @property (nonatomic, strong) UIScrollView *pageScrollView;
@@ -156,9 +156,9 @@
 }
 
 /// 滚动视图(视图容器)
-- (MDBaseScrollView *)baseScrollView {
+- (MDPageBaseScrollView *)baseScrollView {
     if (!_baseScrollView) {
-        _baseScrollView = [[MDBaseScrollView alloc] init];
+        _baseScrollView = [[MDPageBaseScrollView alloc] init];
         _baseScrollView.delegate = self;
         _baseScrollView.bounces = YES;
         _baseScrollView.showsVerticalScrollIndicator = NO;

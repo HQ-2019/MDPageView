@@ -18,6 +18,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, copy) void(^childDidScroll)(UIScrollView *scrollView);
 
+/// 下拉刷新
+/// @param complete 完成后回填
+- (void)pullDownRefresh:(void(^)(void))complete;
+
 @end
 
 NS_ASSUME_NONNULL_END

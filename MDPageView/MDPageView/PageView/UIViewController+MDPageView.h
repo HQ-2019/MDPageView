@@ -1,5 +1,5 @@
 //
-//  UIViewController+md.h
+//  UIViewController+MDPageView.h
 //  MDPageView
 //
 //  Created by hq on 2022/3/25.
@@ -9,7 +9,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface UIViewController (md)
+@interface UIViewController (MDPageView)
 
 @property (nonatomic, strong) UIScrollView *childScrollView;
 

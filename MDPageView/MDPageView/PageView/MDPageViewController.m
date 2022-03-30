@@ -7,7 +7,7 @@
 
 
 #import "MDPageViewController.h"
-#import "UIViewController+md.h"
+#import "UIViewController+MDPageView.h"
 
 @interface MDPageViewController () <UIScrollViewDelegate>
 

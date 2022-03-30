@@ -9,6 +9,7 @@
 #import "MDSubViewController.h"
 #import "MDPageViewController.h"
 #import "MDTabView.h"
+#import "MJRefresh.h"
 
 @interface TestMDPageViewController ()
 
@@ -41,6 +42,17 @@
     [controller updateViewControllers:self.viewControllers];
     
     [controller showPageAtIndex:showIndex animated:NO];
+    
+    // 设置下拉刷新
+    controller.baseScrollView.mj_header = [MJRefreshNormalHeader headerWithRefreshingBlock:^{
+        // 将来拉刷新事件分发给当前控制器处理
+        MDSubViewController *vc = (MDSubViewController *)[weakSelf.pageController currentViewController];
+        if ([vc respondsToSelector:@selector(pullDownRefresh:)]) {
+            [vc pullDownRefresh:^{
+                [weakSelf.pageController.baseScrollView.mj_header endRefreshing];
+            }];
+        }
+    }];
     
     // 底部容器上下滚动
     controller.baseScrollViewDidScrolling = ^(MDBaseScrollView * _Nonnull scrollView) {

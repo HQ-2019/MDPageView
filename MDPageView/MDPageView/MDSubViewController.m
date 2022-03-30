@@ -6,9 +6,11 @@
 //
 
 #import "MDSubViewController.h"
-#import "UIViewController+md.h"
+#import "UIViewController+MDPageView.h"
 
 @interface MDSubViewController () <UITableViewDelegate, UITableViewDataSource>
+
+@property (nonatomic, strong) UITableView *tableView;
 
 @end
 
@@ -47,6 +49,7 @@
         }
         tableView.tableHeaderView = label;
         self.childScrollView = tableView;
+        self.tableView = tableView;
     }
 }
 
@@ -78,6 +81,16 @@
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+}
+
+/// 下拉刷新
+/// @param complete 完成后回填
+- (void)pullDownRefresh:(void(^)(void))complete {
+    // 模拟下拉处理过程，2秒后回调
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+        !complete ?: complete();
+    });
 }
 
 #pragma mark -

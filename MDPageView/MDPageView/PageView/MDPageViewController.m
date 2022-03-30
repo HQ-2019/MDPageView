@@ -109,15 +109,37 @@
 - (void)viewDidLayoutSubviews {
     [super viewDidLayoutSubviews];
     
-    if (self.subHeaderView) {
-        CGRect rect = self.pageScrollView.frame;
-        rect.size.height = rect.size.height - self.subHeaderView.bounds.size.height;
-        self.pageScrollView.frame = rect;
-    }
+    // 更新子视图布局frame
+    [self updateSubViewLayout];
     
-    // 更新列表容器
+    // 更新列表容器内容尺寸和设置内容偏移位置
     [self updateScrollViewContentSize];
     [self updateScrollViewContentOffset:NO];
+}
+
+/// 更新子视图的布局（设置header后需要重新计算布局）
+- (void)updateSubViewLayout {
+
+    if (self.headerView) {
+        CGRect rect = self.headerView.bounds;
+        rect.origin.y = 0;
+        rect.origin.x = 0;
+        self.headerView.frame = rect;
+    }
+
+    if (self.subHeaderView) {
+        CGRect rect = self.subHeaderView.bounds;
+        rect.origin.y = self.headerView.bounds.size.height;
+        self.subHeaderView.frame = rect;
+    }
+    
+    CGRect rect = self.pageScrollView.frame;
+    rect.size.height = self.view.bounds.size.height - self.subHeaderView.bounds.size.height;
+    rect.origin.y = self.headerView.frame.size.height + self.subHeaderView.frame.size.height;
+    self.pageScrollView.frame = rect;
+    
+    // 更新滚动视图内容尺寸
+    [self updateScrollViewContentSize];
 }
 
 /// （关键）不自动调用子控制器的生命周期方法
@@ -194,31 +216,38 @@
 
 /// 设置headerView
 /// @param headerView headerView
-- (void)updateHeaderView:(UIView *)headerView {
+- (void)updateHeaderView:(nullable UIView *)headerView {
     if (self.headerView != headerView) {
         if (self.headerView) {
             [self.headerView removeFromSuperview];
         }
         
         self.headerView = headerView;
-        [self.baseScrollView addSubview:self.headerView];
+        if (self.headerView) {
+            [self.baseScrollView addSubview:self.headerView];
+        }
     }
+    
+    [self updateSubViewLayout];
+    [self updateScrollViewContentSize];
 }
 
 /// 设置吸附在顶部的视图
 /// @param subHeaderView headerView
-- (void)updateSubHeaderView:(UIView *)subHeaderView {
+- (void)updateSubHeaderView:(nullable UIView *)subHeaderView {
     if (self.subHeaderView != subHeaderView) {
         if (self.subHeaderView) {
             [self.subHeaderView removeFromSuperview];
         }
         
         self.subHeaderView = subHeaderView;
-        CGRect rect = subHeaderView.bounds;
-        rect.origin.y = self.headerView.bounds.size.height;
-        self.subHeaderView.frame = rect;
-        [self.baseScrollView addSubview:self.subHeaderView];
+        if (self.subHeaderView) {
+            [self.baseScrollView addSubview:self.subHeaderView];
+        }
     }
+    
+    [self updateSubViewLayout];
+    [self updateScrollViewContentSize];
 }
 
 #pragma mark -
@@ -737,12 +766,12 @@
     // 通过手势滑动速率实时判断手势当前的滑动方向
     CGPoint velocity = [self.baseScrollView.panGestureRecognizer velocityInView:self.baseScrollView];
     
-    if (velocity.y > 0 || (velocity.y == 0 && self.baseScrollViewOffset.y > 0)) {
+    if (velocity.y > 0 || (velocity.y == 0 && self.baseScrollViewVelocity.y > 0)) {
         // 当前手势向下滑，如果子列表内容没有滑到其顶部，则先让其下滑，主容器内容位置偏移保持不变
         if (self.childScrollView && self.childScrollView.contentOffset.y > 0) {
             self.baseScrollView.contentOffset = self.baseScrollViewOffset;
         }
-    } else if (velocity.y < 0 || (velocity.y == 0 && self.baseScrollViewOffset.y < 0)) {
+    } else if (velocity.y < 0 || (velocity.y == 0 && self.baseScrollViewVelocity.y < 0)) {
         // 当前手势向上滑, 主容器到达悬浮位置，主容器内容位置偏移保持不变
         if ([self haveHeaderView] && self.baseScrollView.contentOffset.y >= [self headerStopPoint].y) {
             self.baseScrollView.contentOffset = [self headerStopPoint];

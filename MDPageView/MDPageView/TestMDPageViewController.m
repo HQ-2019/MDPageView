@@ -37,8 +37,16 @@
     [controller didMoveToParentViewController:self];
     self.pageController = controller;
     
-    [controller updateHeaderView:self.headerView];
-    [controller updateSubHeaderView:self.tabView];
+    // 模拟动态设置header,比如根据服务器数据判断是否需要设置
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.pageController updateSubHeaderView:self.tabView];
+    });
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(7 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf.pageController updateHeaderView:self.headerView];
+    });
+    
+//    [controller updateHeaderView:self.headerView];
+//    [controller updateSubHeaderView:self.tabView];
     [controller updateViewControllers:self.viewControllers];
     
     [controller showPageAtIndex:showIndex animated:NO];

@@ -76,11 +76,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 /// 设置headerView
 /// @param headerView headerView
-- (void)updateHeaderView:(UIView *)headerView;
+- (void)updateHeaderView:(nullable UIView *)headerView;
 
 /// 设置吸附在顶部的视图
 /// @param subHeaderView subHeaderView
-- (void)updateSubHeaderView:(UIView *)subHeaderView;
+- (void)updateSubHeaderView:(nullable UIView *)subHeaderView;
 
 /// 获取页面总数
 - (NSInteger)pageCount;

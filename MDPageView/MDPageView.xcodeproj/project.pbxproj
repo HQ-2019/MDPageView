@@ -135,16 +135,11 @@
 				0548521927C77EFC00BD4F26 /* TestUIPageViewController.m */,
 				0548521B27C77F1200BD4F26 /* TestMDPageViewController.h */,
 				0548521C27C77F1200BD4F26 /* TestMDPageViewController.m */,
-				055EAA2227BF77360051B7C6 /* MDPageViewController.h */,
-				055EAA2327BF77360051B7C6 /* MDPageViewController.m */,
 				05054F0527BE33D0007C4520 /* MDSubViewController.h */,
 				05054F0627BE33D0007C4520 /* MDSubViewController.m */,
 				055EBDCB27C4CBD000CBFA70 /* MDTabView.h */,
 				055EBDCC27C4CBD000CBFA70 /* MDTabView.m */,
-				0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */,
-				0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */,
-				0551F84F27EDAB0100932775 /* UIViewController+md.h */,
-				0551F85027EDAB0100932775 /* UIViewController+md.m */,
+				05F855E027F43AD500A494AC /* PageView */,
 				05054ED927BE338B007C4520 /* Main.storyboard */,
 				05054EDC27BE338E007C4520 /* Assets.xcassets */,
 				05054EDE27BE338E007C4520 /* LaunchScreen.storyboard */,
@@ -169,6 +164,19 @@
 				05054EF827BE338E007C4520 /* MDPageViewUITestsLaunchTests.m */,
 			);
 			path = MDPageViewUITests;
+			sourceTree = "<group>";
+		};
+		05F855E027F43AD500A494AC /* PageView */ = {
+			isa = PBXGroup;
+			children = (
+				055EAA2227BF77360051B7C6 /* MDPageViewController.h */,
+				055EAA2327BF77360051B7C6 /* MDPageViewController.m */,
+				0500BE5327E88B3D0024F21B /* MDBaseScrollView.h */,
+				0500BE5427E88B3D0024F21B /* MDBaseScrollView.m */,
+				0551F84F27EDAB0100932775 /* UIViewController+md.h */,
+				0551F85027EDAB0100932775 /* UIViewController+md.m */,
+			);
+			path = PageView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

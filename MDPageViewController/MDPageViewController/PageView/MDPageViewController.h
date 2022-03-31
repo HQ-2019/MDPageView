@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 /// @param isDragging 是否是手指拖动 YES-是
 @property (nonatomic, copy) void(^pageScrollViewDidScrolling)(CGPoint contentOffset, CGSize contentSize, BOOL isDragging);
 
-/// 子页面切换完成回调
+/// 子页面即将切换回调
 /// @param appearIndex 将要显示页面索引
 /// @param disappearIndex 将要消失页面的索引
 @property (nonatomic, copy) void(^childViewWillChanged)(NSInteger appearIndex, NSInteger disappearIndex);

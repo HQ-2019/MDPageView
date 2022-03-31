@@ -763,6 +763,9 @@
         return;
     }
     
+    // 防止子页面控制的列表延迟加载，这里开始滚动时，self.childScrollView可能还没有获取到子控制器页面上的列表或者没有列表要重置掉
+    self.childScrollView = [self currentViewController].childScrollView;
+    
     // 通过手势滑动速率实时判断手势当前的滑动方向
     CGPoint velocity = [self.baseScrollView.panGestureRecognizer velocityInView:self.baseScrollView];
     
@@ -838,4 +841,3 @@
 }
 
 @end
-

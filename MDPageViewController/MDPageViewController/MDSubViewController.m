@@ -8,7 +8,7 @@
 #import "MDSubViewController.h"
 #import "UIViewController+MDPageView.h"
 
-@interface MDSubViewController () <UITableViewDelegate, UITableViewDataSource>
+@interface MDSubViewController () <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
 
@@ -73,6 +73,9 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), self.content);
+
+    self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

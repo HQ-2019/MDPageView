@@ -9,7 +9,7 @@
 #import "MDSubViewController.h"
 #import "MDTabView.h"
 
-@interface TestUIPageViewController ()<UIPageViewControllerDelegate, UIPageViewControllerDataSource>
+@interface TestUIPageViewController ()<UIPageViewControllerDelegate, UIPageViewControllerDataSource, UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) UIPageViewController *pageViewController;
 @property (nonatomic, strong) MDTabView *tabView;
@@ -18,6 +18,12 @@
 @end
 
 @implementation TestUIPageViewController
+
+- (void)viewDidAppear:(BOOL)animated {
+    [super viewDidAppear:animated];
+    self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];

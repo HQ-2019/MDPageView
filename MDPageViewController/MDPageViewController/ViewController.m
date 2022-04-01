@@ -8,8 +8,9 @@
 #import "ViewController.h"
 #import "TestUIPageViewController.h"
 #import "TestMDPageViewController.h"
+#import "MDBaseNavigationController.h"
 
-@interface ViewController ()
+@interface ViewController () <UIGestureRecognizerDelegate>
 
 @end
 
@@ -18,13 +19,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
-    self.navigationController.navigationBar.translucent = NO;
+    self.view.backgroundColor = UIColor.whiteColor;
     
     // 系统UIPageViewController
     [self initButton:@"Test-UIPage" frame:CGRectMake((self.view.frame.size.width - 150.0) / 2.0, 150, 150, 70) sel:@selector(pushUIPageViewController)];
     
     // 自定义MDPageViewController
     [self initButton:@"Test-MDPage" frame:CGRectMake((self.view.frame.size.width - 150.0) / 2.0, 250, 150, 70) sel:@selector(pushMDPageViewController)];
+    
+    [self initButton:@"测试全屏返回" frame:CGRectMake((self.view.frame.size.width - 150.0) / 2.0, 350, 150, 70) sel:@selector(xxxxxxx)];
 }
 
 - (void)initButton:(NSString *)title frame:(CGRect)frame sel:(SEL)sel {
@@ -47,6 +50,11 @@
     [self.navigationController pushViewController:controller animated:YES];
 }
 
+- (void)xxxxxxx {
+    ViewController *controller = [ViewController new];
+    [self.navigationController pushViewController:controller animated:YES];
+}
+
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
@@ -55,6 +63,8 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+    self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

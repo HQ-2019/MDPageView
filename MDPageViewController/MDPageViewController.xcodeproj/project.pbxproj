@@ -22,6 +22,7 @@
 		0548521A27C77EFC00BD4F26 /* TestUIPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0548521927C77EFC00BD4F26 /* TestUIPageViewController.m */; };
 		0548521D27C77F1200BD4F26 /* TestMDPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0548521C27C77F1200BD4F26 /* TestMDPageViewController.m */; };
 		0551F85127EDAB0100932775 /* UIViewController+MDPageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0551F85027EDAB0100932775 /* UIViewController+MDPageView.m */; };
+		055A391627F7010800B79088 /* MDBaseNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 055A391527F7010800B79088 /* MDBaseNavigationController.m */; };
 		055EAA2427BF77360051B7C6 /* MDPageViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 055EAA2327BF77360051B7C6 /* MDPageViewController.m */; };
 		055EBDCD27C4CBD000CBFA70 /* MDTabView.m in Sources */ = {isa = PBXBuildFile; fileRef = 055EBDCC27C4CBD000CBFA70 /* MDTabView.m */; };
 		05F8561227F4406E00A494AC /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 05F855E227F4406E00A494AC /* LICENSE */; };
@@ -91,6 +92,8 @@
 		0548521C27C77F1200BD4F26 /* TestMDPageViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TestMDPageViewController.m; sourceTree = "<group>"; };
 		0551F84F27EDAB0100932775 /* UIViewController+MDPageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIViewController+MDPageView.h"; sourceTree = "<group>"; };
 		0551F85027EDAB0100932775 /* UIViewController+MDPageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+MDPageView.m"; sourceTree = "<group>"; };
+		055A391427F7010800B79088 /* MDBaseNavigationController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDBaseNavigationController.h; sourceTree = "<group>"; };
+		055A391527F7010800B79088 /* MDBaseNavigationController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDBaseNavigationController.m; sourceTree = "<group>"; };
 		055EAA2227BF77360051B7C6 /* MDPageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDPageViewController.h; sourceTree = "<group>"; };
 		055EAA2327BF77360051B7C6 /* MDPageViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MDPageViewController.m; sourceTree = "<group>"; };
 		055EBDCB27C4CBD000CBFA70 /* MDTabView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MDTabView.h; sourceTree = "<group>"; };
@@ -191,6 +194,8 @@
 				05054ED127BE338B007C4520 /* AppDelegate.m */,
 				05054ED327BE338B007C4520 /* SceneDelegate.h */,
 				05054ED427BE338B007C4520 /* SceneDelegate.m */,
+				055A391427F7010800B79088 /* MDBaseNavigationController.h */,
+				055A391527F7010800B79088 /* MDBaseNavigationController.m */,
 				05054ED627BE338B007C4520 /* ViewController.h */,
 				05054ED727BE338B007C4520 /* ViewController.m */,
 				0548521827C77EFC00BD4F26 /* TestUIPageViewController.h */,
@@ -494,6 +499,7 @@
 				05054ED827BE338B007C4520 /* ViewController.m in Sources */,
 				0500BE5527E88B3D0024F21B /* MDPageBaseScrollView.m in Sources */,
 				05F8562327F4406E00A494AC /* MJRefreshHeader.m in Sources */,
+				055A391627F7010800B79088 /* MDBaseNavigationController.m in Sources */,
 				05F8562427F4406E00A494AC /* MJRefreshBackFooter.m in Sources */,
 				05F8561A27F4406E00A494AC /* MJRefreshBackStateFooter.m in Sources */,
 				05F8561E27F4406E00A494AC /* MJRefreshAutoNormalFooter.m in Sources */,

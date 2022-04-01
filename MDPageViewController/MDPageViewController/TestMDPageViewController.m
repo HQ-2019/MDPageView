@@ -11,7 +11,7 @@
 #import "MDTabView.h"
 #import "MJRefresh.h"
 
-@interface TestMDPageViewController ()
+@interface TestMDPageViewController () <UIGestureRecognizerDelegate>
 
 @property (nonatomic, strong) UIScrollView *headerView;
 @property (nonatomic, strong) MDTabView *tabView;
@@ -160,6 +160,8 @@
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     NSLog(@"%@ %@",  NSStringFromSelector(_cmd), NSStringFromClass([self class]));
+    self.navigationController.interactivePopGestureRecognizer.enabled = YES;
+    self.navigationController.interactivePopGestureRecognizer.delegate = self;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
